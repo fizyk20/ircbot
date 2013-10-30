@@ -17,7 +17,8 @@ HEADERS += CBotCore.h \
            CWzorce.h \
            IrcLibQt.h \
            randomchat.h \
-           roll.h
+           roll.h \
+           russian.h
 SOURCES += CBotCore.cpp \
            CBotSettings.cpp \
            CEightball.cpp \
@@ -27,4 +28,5 @@ SOURCES += CBotCore.cpp \
            IrcLibQt.cpp \
            main.cpp \
            randomchat.cpp \
-           roll.cpp
+           roll.cpp \
+           russian.cpp

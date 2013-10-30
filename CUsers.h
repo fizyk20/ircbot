@@ -40,7 +40,6 @@ Q_OBJECT
 	
 	void Load();
 	void Save();
-	int Find(QString nick);
 	
 	void Join(QString nick, QString mask);
 public:
@@ -50,6 +49,8 @@ public:
 	void executeCommand(QString, QStringList, QString, QString);
 	
 	int status(QString);
+	int Find(QString nick);
+	User operator[](int i);
 	
 public slots:
 	void packMode(IrcParams);

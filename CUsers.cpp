@@ -209,6 +209,11 @@ int CUsers::Find(QString nick)
 	return -1;
 }
 
+User CUsers::operator[](int i)
+{
+	return users[i];
+}
+
 void CUsers::packMode(IrcParams par)
 {
 	int i,j;

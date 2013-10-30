@@ -5,6 +5,7 @@
 #include "randomchat.h"
 #include "CWzorce.h"
 #include "CEightball.h"
+#include "russian.h"
 
 CBotCore::CBotCore(QApplication* app)
 {
@@ -51,6 +52,7 @@ CBotCore::CBotCore(QApplication* app)
 	plugins.push_back(new CRandomChat(this, settings));
 	plugins.push_back(new CWzorce(this, settings));
 	plugins.push_back(new CEightball(this, settings));
+	plugins.push_back(new CRussian(this, settings));
 }
 
 CBotCore::~CBotCore()
