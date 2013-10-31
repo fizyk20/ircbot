@@ -12,6 +12,8 @@ CRussian::CRussian(CBotCore* c, CBotSettings* s)
 	
 	thread = NULL;
 	core->registerCommand("russian", this);
+
+	dead.clear();
 }
 
 CRussian::~CRussian()
@@ -50,12 +52,19 @@ void CRussian::executeCommand(QString command, QStringList params, QString addr,
 		return;
 	}
 	
+	if(thread && thread -> isRunning())
+	{
+		core -> sendMsgChannel("Cierpliwości, teraz gra ktoś inny.");
+		return;
+	}
+
 	if(naboj == -1)
 	{
 		core -> sendMsgChannel("Rewolwer przeładowany.");
 		naboj = rand() % 6;
 	}
 	
+	if(thread) delete thread;
 	thread = new RussianThread(this, core, sender, naboj == 0);
 	naboj--;
 	thread -> start();
@@ -69,7 +78,7 @@ void CRussian::addDead(Dead d)
 void CRussian::unban()
 {
 	Dead d = dead.takeFirst();
-	//core -> Mode();
+	core -> channelMode("-b", d.mask);
 }
 
 RussianThread::RussianThread(CRussian* r, CBotCore* c, QString p, bool s)
@@ -99,13 +108,15 @@ void RussianThread::run()
 		}
 		User u = (*users)[n];
 		core -> sendMsgChannel("Jeb!");
-		//core -> Mode()
-		//core -> Kick()
+		core -> channelMode("+b", u.mask);
+		core -> kickUser(u.nick, "Przegrałeś.");
 		Dead d;
 		d.mask = u.mask;
 		d.nick = player;
 		russian -> addDead(d);
 		QTimer::singleShot(20000, russian, SLOT(unban()));
+		QTimer::singleShot(20100, this, SLOT(quit()));
+		exec();	// Żeby timery zadziałały
 	}
 	else
 	{
