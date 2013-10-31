@@ -6,6 +6,7 @@
 #include "CWzorce.h"
 #include "CEightball.h"
 #include "russian.h"
+#include "badwords.h"
 
 CBotCore::CBotCore(QApplication* app)
 {
@@ -54,6 +55,7 @@ CBotCore::CBotCore(QApplication* app)
 	plugins.push_back(new CWzorce(this, settings));
 	plugins.push_back(new CEightball(this, settings));
 	plugins.push_back(new CRussian(this, settings));
+	plugins.push_back(new Badwords(this, settings));
 }
 
 CBotCore::~CBotCore()
@@ -204,7 +206,9 @@ void CBotCore::packPrivMsg(IrcParams p)
 		QString command = p.params[2].mid(1,i-1);
 		if(commands.find(command) == commands.end())
 			return;
-		QStringList params = p.params[2].mid(i+1).split(" ",QString::SkipEmptyParts);
+		QStringList params;
+		if(i >= 0)
+			params = p.params[2].mid(i+1).split(" ",QString::SkipEmptyParts);
 		commands[command]->executeCommand(command, params, addr, p.params[0]);
 	}
 	else

@@ -27,22 +27,22 @@ CRussian::~CRussian()
 
 void CRussian::executeCommand(QString command, QStringList params, QString addr, QString sender)
 {
-	if(params.length() > 1 && core->master(sender))
+	if(params.length() > 0 && core->master(sender))
 	{
-		if(params[1] == "enable")
+		if(params[0] == "enable")
 		{
 			enabled = true;
 			core -> sendMsgChannel("Włączono rosyjską ruletkę.");
 			naboj = -1;
 			return;
 		}
-		if(params[1] == "disable")
+		if(params[0] == "disable")
 		{
 			enabled = false;
 			core -> sendMsgChannel("Wyłączono rosyjską ruletkę.");
 			return;
 		}
-		core -> sendMsgChannel("Sam się " + params[1] + "!");
+		core -> sendMsgChannel("Sam się " + params[0] + "!");
 		return;
 	}
 	
