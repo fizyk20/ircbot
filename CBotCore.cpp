@@ -41,7 +41,7 @@ CBotCore::CBotCore(QApplication* app)
 	serwer = settings->GetString("server");
 	kanal = settings->GetString("channel");
 	port = settings->GetString("port");
-	nick = settings->GetString("nick");
+	orig_nick = nick = settings->GetString("nick");
 	imie = settings->GetString("name");
 	email = settings->GetString("email");
 	
@@ -180,7 +180,6 @@ void CBotCore::evMOTD(QString txt)
 void CBotCore::evNickInUse()
 {
 	Log("*** Nick " + nick + " już jest używany przez kogoś innego - próbuję " + nick + "_.");
-	orig_nick = nick;
 	nick += "_";
 	sess -> Nick(nick);
 
