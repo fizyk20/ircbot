@@ -24,6 +24,7 @@ CBotCore::CBotCore(QApplication* app)
 	
 	connect(sess, SIGNAL(evWelcome()), this, SLOT(evWelcome()));
 	connect(sess, SIGNAL(evMOTD(QString)), this, SLOT(evMOTD(QString)));
+	connect(sess, SIGNAL(evNickInUse()), this, SLOT(evNickInUse()));
 	
 	connect(sess, SIGNAL(packPrivMsg(IrcParams)), this, SLOT(packPrivMsg(IrcParams)));
 	connect(sess, SIGNAL(packNotice(IrcParams)), this, SLOT(packNotice(IrcParams)));
@@ -126,13 +127,11 @@ void CBotCore::sendMsgChannel(QString txt)
 
 void CBotCore::channelMode(QString mode, QString params)
 {
-	Log(nick + " ustawił tryb " + mode + " " + params);
 	sess -> Mode(kanal, mode, params);
 }
 
 void CBotCore::kickUser(QString who, QString reason)
 {
-	Log(who + " został wyrzucony z kanału przez " + nick + " (" + reason + ")");
 	sess -> Kick(kanal, who, reason);
 }
 
@@ -161,6 +160,11 @@ void CBotCore::disconnected()
 void CBotCore::evWelcome()
 {
 	Log("*** Odebrano Welcome.");
+	if(nick != orig_nick)
+	{
+		Log("Ghostuję wrednego człowieka.");
+		sess -> PrivMsg("NickServ","ghost " + orig_nick + " " + settings->GetString("password"));
+	}
 	kanal = settings->GetString("channel");
 	Log("*** Dołączanie do kanału " + kanal);
 	sess -> Join(kanal);
@@ -169,6 +173,18 @@ void CBotCore::evWelcome()
 void CBotCore::evMOTD(QString txt)
 {
 	Log("*** MOTD: " + txt, false);
+}
+
+void CBotCore::evNickInUse()
+{
+	Log("*** Nick " + nick + " już jest używany przez kogoś innego - próbuję " + nick + "_.");
+	orig_nick = nick;
+	nick += "_";
+	sess -> Nick(nick);
+
+	QStringList s = email.split("@");
+	if(s.size()<2) return;
+	sess -> User(s[0], "\"" + s[1] + "\"", imie);
 }
 
 void CBotCore::packPrivMsg(IrcParams p)
@@ -200,6 +216,11 @@ void CBotCore::packNotice(IrcParams p)
 	Log("*** NOTICE " + p.params[1] + ": " + p.params[2]);
 	if(p.params[2].contains("This nickname is registered."))
 		sess->PrivMsg("NickServ","identify "+settings->GetString("password"));
+	if(p.params[2].contains("ghosted"))
+	{
+		sess->Nick(orig_nick);
+		nick = orig_nick;
+	}
 }
 
 void CBotCore::packError(QString txt)

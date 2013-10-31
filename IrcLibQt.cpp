@@ -170,6 +170,8 @@ int CIrcSession::ProcessPacket(IrcPacket p)
 				break;
 			case RPL_ENDOFNAMES:
 				break;
+			case ERR_NICKNAMEINUSE:
+				emit evNickInUse();
 			default:
 				break;
 		}

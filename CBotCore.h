@@ -19,7 +19,7 @@ Q_OBJECT
 	QMap<QString,CBotPlugin*> commands;
 	QMap<QString,CBotPlugin*> idPlugins;
 	
-	QString nick,email,imie,serwer,port,kanal;
+	QString orig_nick,nick,email,imie,serwer,port,kanal;
 public:
 	CBotCore(QApplication*);
 	~CBotCore();
@@ -46,6 +46,7 @@ public slots:
 	
 	void evWelcome();
 	void evMOTD(QString);
+	void evNickInUse();
 	
 	void packPrivMsg(IrcParams);
 	void packNotice(IrcParams);

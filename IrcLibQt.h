@@ -233,6 +233,7 @@ signals:
 	void evWelcome();
 	void evMOTD(QString);
 	void evNameReply(IrcParams);
+	void evNickInUse();
 };
 
 IrcPacket PacketToStruct(QString);
