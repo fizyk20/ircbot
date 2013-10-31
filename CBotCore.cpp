@@ -124,6 +124,18 @@ void CBotCore::sendMsgChannel(QString txt)
 	sess -> PrivMsg(kanal, txt);
 }
 
+void CBotCore::channelMode(QString mode, QString params)
+{
+	Log(nick + " ustawił tryb " + mode + " " + params);
+	sess -> Mode(kanal, mode, params);
+}
+
+void CBotCore::kickUser(QString who, QString reason)
+{
+	Log(who + " został wyrzucony z kanału przez " + nick + " (" + reason + ")");
+	sess -> Kick(kanal, who, reason);
+}
+
 void CBotCore::botConnect()
 {
 	Log("*** Łączenie... " + serwer + ":" + port);

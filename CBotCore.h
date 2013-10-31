@@ -34,6 +34,8 @@ public:
 	bool master(QString);
 	void sendMsg(QString, QString);
 	void sendMsgChannel(QString);
+	void channelMode(QString, QString);
+	void kickUser(QString, QString);
 	
 public slots:
 	void botConnect();
