@@ -71,9 +71,10 @@ void Badwords::ircMessage(QString sender, QString addr, QString msg)
 		int i;
 		for(i = 0; i < badwords.size(); i++)
 		{
-			if(msg.contains(badwords[i], Qt::CaseInsensitive))
+			QRegExp reg = QRegExp("(" + badwords[i] + ")", Qt::CaseInsensitive);
+			if(msg.contains(reg))
 			{
-				BadwordFound(id, sender, u.mask, badwords[i]);
+				BadwordFound(id, sender, u.mask, reg.cap(1));
 				return;
 			}
 		}
