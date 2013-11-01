@@ -19,7 +19,8 @@ HEADERS += CBotCore.h \
            randomchat.h \
            roll.h \
            russian.h \
-           badwords.h
+           badwords.h \
+           antiflood.h
 SOURCES += CBotCore.cpp \
            CBotSettings.cpp \
            CEightball.cpp \
@@ -31,4 +32,5 @@ SOURCES += CBotCore.cpp \
            randomchat.cpp \
            roll.cpp \
            russian.cpp \
-           badwords.cpp
+           badwords.cpp \
+           antiflood.cpp
