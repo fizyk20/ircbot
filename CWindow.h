@@ -1,14 +1,11 @@
 #ifndef __CWINDOW__
 #define __CWINDOW__
 
-#include <QMainWindow>
-#include <QTextEdit>
-#include <QPushButton>
+#include <QtCore>
 
-class CWindow : public QMainWindow
+class CWindow : public QObject
 {
 Q_OBJECT
-	QTextEdit* mainEdit;
 public:
 	CWindow();
 	~CWindow();

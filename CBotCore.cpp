@@ -58,6 +58,8 @@ CBotCore::CBotCore(QApplication* app)
 	plugins.push_back(new CRussian(this, settings));
 	plugins.push_back(new Badwords(this, settings));
 	plugins.push_back(new AntiFlood(this, settings));
+
+	wnd -> clickedConnect();
 }
 
 CBotCore::~CBotCore()
