@@ -4,7 +4,7 @@
 #include "IrcLibQt.h"
 #include "CWindow.h"
 #include "CBotSettings.h"
-#include <QApplication>
+#include <QtCore/QCoreApplication>
 
 class CBotPlugin;
 
@@ -21,7 +21,7 @@ Q_OBJECT
 	
 	QString orig_nick,nick,email,imie,serwer,port,kanal;
 public:
-	CBotCore(QApplication*);
+	CBotCore(QCoreApplication*);
 	~CBotCore();
 	
 	void handleRawEvent(const char* event, const CBotPlugin* handler, const char* slot);

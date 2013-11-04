@@ -9,7 +9,7 @@
 #include "badwords.h"
 #include "antiflood.h"
 
-CBotCore::CBotCore(QApplication* app)
+CBotCore::CBotCore(QCoreApplication* app)
 {
 	settings = new CBotSettings("settings.ini");
 	sess = new CIrcSession;

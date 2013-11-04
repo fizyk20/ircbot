@@ -7,6 +7,8 @@ TARGET =
 DEPENDPATH += .
 INCLUDEPATH += .
 QT += network
+QT -= gui
+CONFIG += console
 
 # Input
 HEADERS += CBotCore.h \
