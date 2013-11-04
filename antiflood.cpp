@@ -4,10 +4,6 @@
 AntiFlood::AntiFlood(CBotCore* c, CBotSettings* s)
 	: CBotPlugin(c, s)
 {
-	enabled = settings -> GetBool("enabled_antiflood");
-	interval = settings -> GetInt("antiflood_interval");
-	number = settings -> GetInt("antiflood_number");
-
 	core -> registerCommand("antiflood", this);
 	core -> handleEvent(SIGNAL(ircMessage(QString, QString, QString)), this, SLOT(ircMessage(QString, QString, QString)));
 }
@@ -30,22 +26,22 @@ void AntiFlood::executeCommand(QString command, QStringList params, QString addr
 	if(params.length() < 1) return;
 	if(params[0] == "enable")
 	{
-		enabled = true;
+		settings -> SetBool("enabled_antiflood", true);
 		core -> sendMsg(addr, "Zabezpieczenie Anti-Flood włączone.");
 	}
 	if(params[0] == "disable")
 	{
-		enabled = true;
+		settings -> SetBool("enabled_antiflood", false);
 		core -> sendMsg(addr, "Zabezpieczenie Anti-Flood wyłączone.");
 	}
 	if(params[0] == "interval" && params.length() > 1)
 	{
-		interval = params[1].toInt();
+		settings -> SetInt("antiflood_interval", params[1].toInt());
 		core -> sendMsg(addr, "Interwał Anti-Flood ustawiony na " + params[1] + " milisekund.");
 	}
 	if(params[0] == "number" && params.length() > 1)
 	{
-		number = params[1].toInt();
+		settings -> SetInt("antiflood_number", params[1].toInt());
 		core -> sendMsg(addr, "Liczba wiadomości Anti-Flood ustawiona na " + params[1] + ".");
 	}
 }
@@ -53,7 +49,7 @@ void AntiFlood::executeCommand(QString command, QStringList params, QString addr
 void AntiFlood::ircMessage(QString sender, QString ret_addr, QString msg)
 {
 	CUsers* users = (CUsers*) core -> getPlugin("users");
-	if(enabled)
+	if(settings -> GetBool("enabled_antiflood"))
 	{
 		int id = Find(sender);
 		if(id<0)
@@ -67,12 +63,12 @@ void AntiFlood::ircMessage(QString sender, QString ret_addr, QString msg)
 		}
 		else
 		{
-			if(floods[id].last_message.msecsTo(QDateTime::currentDateTime()) < interval)
+			if(floods[id].last_message.msecsTo(QDateTime::currentDateTime()) < settings -> GetInt("antiflood_interval"))
 				floods[id].how_many++;
 			else
 				floods[id].how_many = 1;
 			floods[id].last_message = QDateTime::currentDateTime();
-			if(floods[id].how_many >= number)
+			if(floods[id].how_many >= settings -> GetInt("antiflood_number"))
 			{
 				floods[id].kicks++;
 				if(floods[id].kicks > settings -> GetInt("max_warnings"))

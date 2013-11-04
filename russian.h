@@ -33,7 +33,6 @@ class CRussian : public CBotPlugin
 Q_OBJECT
 	int naboj;
 	QString player;
-	bool enabled;
 	
 	RussianThread* thread;
 	QList<Dead> dead;

@@ -16,9 +16,6 @@ class AntiFlood : public CBotPlugin
 {
 Q_OBJECT
 	QVector<Flood> floods;
-	bool enabled;
-	unsigned interval;
-	int number;
 public:
 	AntiFlood(CBotCore*, CBotSettings*);
 	~AntiFlood();

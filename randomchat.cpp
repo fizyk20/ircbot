@@ -68,7 +68,6 @@ CRandomChat::CRandomChat(CBotCore* c, CBotSettings* s)
 	: CBotPlugin(c, s)
 {
 	plik = "randomchat.dat";
-	enabled = settings->GetBool("enabled_random");
 	stfu_active = false;
 	
 	core->handleEvent(SIGNAL(ircMessage(QString, QString, QString)), this, SLOT(ircMessage(QString, QString, QString)));
@@ -254,12 +253,12 @@ void CRandomChat::executeCommand(QString command, QStringList params, QString ad
 		if(params[0] == "enable")
 		{
 			core -> sendMsg(addr,"Bredzenie włączone.");
-			enabled = true;
+			settings -> SetBool("enabled_random", true);
 		}
 		if(params[0] == "disable")
 		{
 			core -> sendMsg(addr,"Bredzenie wyłączone.");
-			enabled = false;
+			settings -> SetBool("enabled_random", false);
 		}
 	}
 	if(command == "gadaj")
@@ -270,7 +269,7 @@ void CRandomChat::ircMessage(QString, QString addr, QString msg)
 {
 	Analizuj(msg);
 	
-	if(enabled && !stfu_active)
+	if(settings->GetBool("enabled_random") && !stfu_active)
 	{
 		int x = rand()%100+1;
 		if(x > settings->GetInt("answer_probability")) return;

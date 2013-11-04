@@ -105,21 +105,25 @@ bool CBotSettings::GetBool(QString name)
 void CBotSettings::SetString(QString name, QString val)
 {
 	values[name] = val;
+	Save();
 }
 
 void CBotSettings::SetDouble(QString name, double val)
 {
 	values[name] = QString::number(val);
+	Save();
 }
 
 void CBotSettings::SetInt(QString name, int val)
 {
 	values[name] = QString::number(val);
+	Save();
 }
 
 void CBotSettings::SetBool(QString name, bool val)
 {
 	values[name] = (val?tr("true"):tr("false"));
+	Save();
 }
 
 /***********************************************************************************/

@@ -4,9 +4,6 @@
 Badwords::Badwords(CBotCore* c, CBotSettings* s)
 	: CBotPlugin(c, s)
 {
-	enabled = settings->GetBool("enabled_badwords");
-	kick_ops = settings->GetBool("enabled_kick_ops");
-
 	QFile file("badwords.ini");
 	file.open(QIODevice::ReadOnly | QIODevice::Text);
 
@@ -36,23 +33,23 @@ void Badwords::executeCommand(QString command, QStringList params, QString addr,
 	if(params[0] == "enable")
 	{
 		core -> sendMsgChannel("Filtr Badwords włączony.");
-		enabled = true;
+		settings -> SetBool("enabled_badwords", true);
 	}
 	if(params[0] == "disable")
 	{
 		core -> sendMsgChannel("Filtr Badwords wyłączony.");
-		enabled = false;
+		settings -> SetBool("enabled_badwords", false);
 	}
 	if(params[0] == "kick_ops" && params.length() > 1)
 	{
 		if(params[1] == "on")
 		{
-			kick_ops = true;
+			settings -> SetBool("enabled_kick_ops", true);
 			core -> sendMsgChannel("Kopanie operatorów włączone.");
 		}
 		if(params[1] == "off")
 		{
-			kick_ops = false;
+			settings -> SetBool("enabled_kick_ops", false);
 			core -> sendMsgChannel("Kopanie operatorów wyłączone.");
 		}
 	}
@@ -66,7 +63,7 @@ void Badwords::ircMessage(QString sender, QString addr, QString msg)
 	if(id < 0) return;
 	User u = (*users)[id];
 
-	if(enabled && ((!(u.status & ST_HOP) && !(u.status & ST_OP)) || kick_ops))
+	if(settings -> GetBool("enabled_badwords") && ((!(u.status & ST_HOP) && !(u.status & ST_OP)) || settings -> GetBool("enabled_kick_ops")))
 	{
 		int i;
 		for(i = 0; i < badwords.size(); i++)

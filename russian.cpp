@@ -7,7 +7,6 @@ CRussian::CRussian(CBotCore* c, CBotSettings* s)
 	: CBotPlugin(c, s)
 {
 	naboj = -1;
-	enabled = settings->GetBool("enabled_russian");
 	srand(QDateTime::currentDateTime().toTime_t());
 	
 	thread = NULL;
@@ -31,14 +30,14 @@ void CRussian::executeCommand(QString command, QStringList params, QString addr,
 	{
 		if(params[0] == "enable")
 		{
-			enabled = true;
+			settings -> SetBool("enabled_russian", true);
 			core -> sendMsgChannel("Włączono rosyjską ruletkę.");
 			naboj = -1;
 			return;
 		}
 		if(params[0] == "disable")
 		{
-			enabled = false;
+			settings -> SetBool("enabled_russian", false);
 			core -> sendMsgChannel("Wyłączono rosyjską ruletkę.");
 			return;
 		}
@@ -46,7 +45,7 @@ void CRussian::executeCommand(QString command, QStringList params, QString addr,
 		return;
 	}
 	
-	if(!enabled)
+	if(! settings -> GetBool("enabled_russian"))
 	{
 		core -> sendMsgChannel("Rosyjska ruletka jest wyłączona.");
 		return;

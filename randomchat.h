@@ -33,7 +33,6 @@ Q_OBJECT
 	void zapisz();
 	
 	bool stfu_active;
-	bool enabled;
 	
 	QTimer tAutosave;
 	bool modified;
