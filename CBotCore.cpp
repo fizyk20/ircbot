@@ -195,7 +195,7 @@ void CBotCore::evNickInUse()
 void CBotCore::packPrivMsg(IrcParams p)
 {
 	QString appendix = "";
-	QString addr = "";
+	QString addr = kanal;
 	if(p.params[1] == nick)
 	{
 		appendix = "|priv";
@@ -215,7 +215,7 @@ void CBotCore::packPrivMsg(IrcParams p)
 		commands[command]->executeCommand(command, params, addr, p.params[0]);
 	}
 	else
-		emit ircMessage(p.params[0], p.params[1], p.params[2]);
+		emit ircMessage(p.params[0], addr, p.params[2]);
 }
 
 void CBotCore::packNotice(IrcParams p)
