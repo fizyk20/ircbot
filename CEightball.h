@@ -7,6 +7,7 @@ class CEightball : public CBotPlugin
 {
 Q_OBJECT
 	QVector<QString> answers;
+	void load();
 public:
 	CEightball(CBotCore*, CBotSettings*);
 	~CEightball();

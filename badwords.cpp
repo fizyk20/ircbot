@@ -4,6 +4,18 @@
 Badwords::Badwords(CBotCore* c, CBotSettings* s)
 	: CBotPlugin(c, s)
 {
+	load();
+
+	core -> handleEvent(SIGNAL(ircMessage(QString, QString, QString)), this, SLOT(ircMessage(QString, QString, QString)));
+	core -> registerCommand("badwords", this);
+}
+
+Badwords::~Badwords()
+{
+}
+
+void Badwords::load()
+{
 	QFile file("badwords.ini");
 	file.open(QIODevice::ReadOnly | QIODevice::Text);
 
@@ -16,13 +28,6 @@ Badwords::Badwords(CBotCore* c, CBotSettings* s)
 	}
 
 	file.close();
-
-	core -> handleEvent(SIGNAL(ircMessage(QString, QString, QString)), this, SLOT(ircMessage(QString, QString, QString)));
-	core -> registerCommand("badwords", this);
-}
-
-Badwords::~Badwords()
-{
 }
 
 void Badwords::executeCommand(QString command, QStringList params, QString addr, QString sender)
@@ -52,6 +57,11 @@ void Badwords::executeCommand(QString command, QStringList params, QString addr,
 			settings -> SetBool("enabled_kick_ops", false);
 			core -> sendMsgChannel("Kopanie operatorów wyłączone.");
 		}
+	}
+	if(params[0] == "reload")
+	{
+		badwords.clear();
+		load();
 	}
 }
 

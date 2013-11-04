@@ -8,6 +8,7 @@ class CWzorce : public CBotPlugin
 Q_OBJECT
 	QMap<QString,QString> wzorce;
 	
+	void load();
 public:
 	CWzorce(CBotCore*, CBotSettings*);
 	~CWzorce();

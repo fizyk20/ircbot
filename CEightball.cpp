@@ -3,6 +3,16 @@
 CEightball::CEightball(CBotCore* c, CBotSettings* s)
 	: CBotPlugin(c, s)
 {
+	load();
+	core -> registerCommand("eightball", this);
+}
+
+CEightball::~CEightball()
+{
+}
+
+void CEightball::load()
+{
 	QFile file("eightball.ini");
 	file.open(QIODevice::ReadOnly | QIODevice::Text);
 	
@@ -15,12 +25,6 @@ CEightball::CEightball(CBotCore* c, CBotSettings* s)
 	}
 	
 	file.close();
-	
-	core -> registerCommand("eightball", this);
-}
-
-CEightball::~CEightball()
-{
 }
 
 void CEightball::executeCommand(QString command, QStringList params, QString addr, QString sender)
@@ -31,6 +35,13 @@ void CEightball::executeCommand(QString command, QStringList params, QString add
 		return;
 	}
 	
+	if(params[0] == "reload")
+	{
+		answers.clear();
+		load();
+		return;
+	}
+
 	unsigned n = rand() % answers.size();
 	QString ans = answers[n];
 	ans.replace("%s", sender);

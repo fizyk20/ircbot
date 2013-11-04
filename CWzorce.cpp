@@ -3,29 +3,43 @@
 CWzorce::CWzorce(CBotCore* c, CBotSettings* s)
 	: CBotPlugin(c, s)
 {
-	QFile file("wzorce.ini");
-	file.open(QIODevice::ReadOnly | QIODevice::Text);
-	
-	QTextStream in(&file);
-	while (!in.atEnd()) 
-	{
-		QString regexp = in.readLine();
-		QString answer = in.readLine();
-		
- 		wzorce[regexp] = answer;
-	}
-	
-	file.close();
+	load();
 	
 	core -> handleEvent(SIGNAL(ircMessage(QString, QString, QString)), this, SLOT(ircMessage(QString, QString, QString)));
+	core -> registerCommand("wzorce", this);
 }
 
 CWzorce::~CWzorce()
 {
 }
 
-void CWzorce::executeCommand(QString, QStringList, QString, QString)
+void CWzorce::load()
 {
+	QFile file("wzorce.ini");
+	file.open(QIODevice::ReadOnly | QIODevice::Text);
+
+	QTextStream in(&file);
+	while (!in.atEnd())
+	{
+		QString regexp = in.readLine();
+		QString answer = in.readLine();
+
+ 		wzorce[regexp] = answer;
+	}
+
+	file.close();
+}
+
+void CWzorce::executeCommand(QString command, QStringList params, QString, QString)
+{
+	if(params.length() < 1) return;
+
+	if(params[0] == 'reload')
+	{
+		wzorce.clear();
+		load();
+		return;
+	}
 }
 
 void CWzorce::ircMessage(QString sender, QString addr, QString msg)

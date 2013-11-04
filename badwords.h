@@ -14,6 +14,8 @@ class Badwords : public CBotPlugin
 Q_OBJECT
 	QVector<QString> badwords;
 	QVector<Warning> warns;
+
+	void load();
 public:
 	Badwords(CBotCore*, CBotSettings*);
 	~Badwords();
