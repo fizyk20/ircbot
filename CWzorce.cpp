@@ -34,7 +34,7 @@ void CWzorce::executeCommand(QString command, QStringList params, QString, QStri
 {
 	if(params.length() < 1) return;
 
-	if(params[0] == 'reload')
+	if(params[0] == "reload")
 	{
 		wzorce.clear();
 		load();
