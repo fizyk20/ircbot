@@ -1,6 +1,6 @@
 #include "CWindow.h"
-#include <iostream>
-using namespace std;
+#include <QTextStream>
+#include <stdio.h>
 
 CWindow::CWindow()
 {
@@ -12,7 +12,8 @@ CWindow::~CWindow()
 
 void CWindow::Log(QString txt)
 {
-	cout << txt;
+	QTextStream qout(stdout);
+	qout << txt << endl;
 }
 
 void CWindow::clickedConnect()
