@@ -170,8 +170,15 @@ int CIrcSession::ProcessPacket(IrcPacket p)
 				break;
 			case RPL_ENDOFNAMES:
 				break;
+			case RPL_BANLIST:
+				emit evBanList(par);
+				break;
+			case RPL_ENDOFBANLIST:
+				emit evEndBanList();
+				break;
 			case ERR_NICKNAMEINUSE:
 				emit evNickInUse();
+				break;
 			default:
 				break;
 		}

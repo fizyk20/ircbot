@@ -234,6 +234,8 @@ signals:
 	void evMOTD(QString);
 	void evNameReply(IrcParams);
 	void evNickInUse();
+	void evBanList(IrcParams);
+	void evEndBanList();
 };
 
 IrcPacket PacketToStruct(QString);
