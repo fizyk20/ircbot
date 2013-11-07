@@ -8,6 +8,7 @@
 #include "russian.h"
 #include "badwords.h"
 #include "antiflood.h"
+#include "CKickBan.h"
 
 CBotCore::CBotCore(QApplication* app)
 {
@@ -58,6 +59,7 @@ CBotCore::CBotCore(QApplication* app)
 	plugins.push_back(new CRussian(this, settings));
 	plugins.push_back(new Badwords(this, settings));
 	plugins.push_back(new AntiFlood(this, settings));
+	plugins.push_back(new CKickBan(this, settings));
 }
 
 CBotCore::~CBotCore()

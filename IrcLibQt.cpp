@@ -334,7 +334,8 @@ int CIrcSession::Mode(QString who,QString mode,QString param)
 	pack.params.clear();
 	pack.params.push_back(who);
 	pack.params.push_back(mode);
-	pack.params.push_back(param);
+	if(param != "")
+		pack.params.push_back(param);
 	
 	a=StructToPacket(pack);
 	
