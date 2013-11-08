@@ -90,29 +90,23 @@ void CKickBan::executeCommand(QString command, QStringList params, QString addr,
 	CUsers* users = (CUsers*) core -> getPlugin("users");
 	if(command == "vote" && core -> master(sender))
 	{
-		if(params.length() < 1)
-		{
-			core -> sendMsg(addr, "Za mało parametrów!");
-			return;
-		}
+		if(params.length() < 1) { core -> sendMsg(addr, "Za mało parametrów!"); return; }
 		if(params[0] == "pass_min")
 		{
-			if(params.length() < 2)
-			{
-				core -> sendMsg(addr, "Za mało parametrów!");
-				return;
-			}
+			if(params.length() < 2) { core -> sendMsg(addr, "Za mało parametrów!"); return; }
 			settings -> SetDouble("vote_pass_min", params[1].toDouble());
 			return;
 		}
 		if(params[0] == "timeout")
 		{
-			if(params.length() < 2)
-			{
-				core -> sendMsg(addr, "Za mało parametrów!");
-				return;
-			}
+			if(params.length() < 2) { core -> sendMsg(addr, "Za mało parametrów!"); return; }
 			settings -> SetInt("vote_timeout", params[1].toInt());
+			return;
+		}
+		if(params[0] == "min_votes")
+		{
+			if(params.length() < 2) { core -> sendMsg(addr, "Za mało parametrów!"); return; }
+			settings -> SetInt("vote_min_votes", params[1].toInt());
 			return;
 		}
 		return;
@@ -121,62 +115,31 @@ void CKickBan::executeCommand(QString command, QStringList params, QString addr,
 	{
 		if(command == "kick")
 		{
-			if(! core -> master(sender))
-			{
-				core -> sendMsg(addr, "Nie masz uprawnień do wydania tej komendy.");
-				return;
-			}
-			if(params.length() < 1)
-			{
-				core -> sendMsg(addr, "Za mało parametrów!");
-				return;
-			}
-			if(users -> Find(params[0]) == -1)
-			{
-				core -> sendMsg(addr, "Nie ma takiego użytkownika!");
-				return;
-			}
+			if(! core -> master(sender)) { core -> sendMsg(addr, "Nie masz uprawnień do wydania tej komendy."); return; }
+			if(params.length() < 1) { core -> sendMsg(addr, "Za mało parametrów!"); return; }
+			if(params[0] == core -> getNick()) { core -> sendMsg(addr, "Nie będę kopał samego siebie ;)"); return; }
+			if(users -> Find(params[0]) == -1) { core -> sendMsg(addr, "Nie ma takiego użytkownika!"); return; }
+
 			core -> kickUser(params[0], (params.length() > 1) ? params[1] : "");
 		}
 		else if(command == "ban")
 		{
-			if(! core -> master(sender))
-			{
-				core -> sendMsg(addr, "Nie masz uprawnień do wydania tej komendy.");
-				return;
-			}
-			if(params.length() < 1)
-			{
-				core -> sendMsg(addr, "Za mało parametrów!");
-				return;
-			}
+			if(! core -> master(sender)) { core -> sendMsg(addr, "Nie masz uprawnień do wydania tej komendy."); return; }
+			if(params.length() < 1) { core -> sendMsg(addr, "Za mało parametrów!"); return; }
+			if(params[0] == core -> getNick()) { core -> sendMsg(addr, "Nie będę banował samego siebie ;)"); return; }
 			int id = users -> Find(params[0]);
-			if(id == -1)
-			{
-				core -> sendMsg(addr, "Nie ma takiego użytkownika.");
-				return;
-			}
+			if(id == -1) { core -> sendMsg(addr, "Nie ma takiego użytkownika."); return; }
+
 			User u = (*users)[id];
 			ban(u.nick, "*!*@" + u.mask);
 			core -> kickUser(params[0], (params.length() > 1) ? params[1] : "");
 		}
 		else if(command == "unban")
 		{
-			if(! core -> master(sender))
-			{
-				core -> sendMsg(addr, "Nie masz uprawnień do wydania tej komendy.");
-				return;
-			}
-			if(params.length() < 1)
-			{
-				core -> sendMsg(addr, "Za mało parametrów!");
-				return;
-			}
-			if(! bans.contains(params[0]))
-			{
-				core -> sendMsg(addr, "Nie ma bana o takiej nazwie!");
-				return;
-			}
+			if(! core -> master(sender)) { core -> sendMsg(addr, "Nie masz uprawnień do wydania tej komendy."); return; }
+			if(params.length() < 1) { core -> sendMsg(addr, "Za mało parametrów!"); return; }
+			if(! bans.contains(params[0])) { core -> sendMsg(addr, "Nie ma bana o takiej nazwie!"); return; }
+
 			unban(params[0]);
 		}
 		else if(command == "banlist")
@@ -189,16 +152,10 @@ void CKickBan::executeCommand(QString command, QStringList params, QString addr,
 
 		else if(command == "votekick")
 		{
-			if(params.length() < 1)
-			{
-				core -> sendMsg(addr, "Za mało parametrów!");
-				return;
-			}
-			if(users -> Find(params[0]) == -1)
-			{
-				core -> sendMsg(addr, "Nie ma takiego użytkownika!");
-				return;
-			}
+			if(params.length() < 1) { core -> sendMsg(addr, "Za mało parametrów!"); return; }
+			if(params[0] == core -> getNick()) { core -> sendMsg(addr, "Nie będę kopał samego siebie ;)"); return; }
+			if(users -> Find(params[0]) == -1) { core -> sendMsg(addr, "Nie ma takiego użytkownika!"); return; }
+
 			voteTarget = params[0];
 			int timeout = settings -> GetInt("vote_timeout");
 			state = Voting;
@@ -210,17 +167,11 @@ void CKickBan::executeCommand(QString command, QStringList params, QString addr,
 		}
 		else if(command == "voteban")
 		{
-			if(params.length() < 1)
-			{
-				core -> sendMsg(addr, "Za mało parametrów!");
-				return;
-			}
+			if(params.length() < 1) { core -> sendMsg(addr, "Za mało parametrów!"); return; }
+			if(params[0] == core -> getNick()) { core -> sendMsg(addr, "Nie będę banował samego siebie ;)"); return; }
 			int id = users -> Find(params[0]);
-			if(id == -1)
-			{
-				core -> sendMsg(addr, "Nie ma takiego użytkownika!");
-				return;
-			}
+			if(id == -1) { core -> sendMsg(addr, "Nie ma takiego użytkownika!"); return; }
+
 			voteTarget = params[0];
 			voteMask = "*!*@" + (*users)[id].mask;
 			int timeout = settings -> GetInt("vote_timeout");
@@ -233,16 +184,9 @@ void CKickBan::executeCommand(QString command, QStringList params, QString addr,
 		}
 		else if(command == "voteunban")
 		{
-			if(params.length() < 1)
-			{
-				core -> sendMsg(addr, "Za mało parametrów!");
-				return;
-			}
-			if(! bans.contains(params[0]))
-			{
-				core -> sendMsg(addr, "Nie ma takiego bana!");
-				return;
-			}
+			if(params.length() < 1) { core -> sendMsg(addr, "Za mało parametrów!"); return; }
+			if(! bans.contains(params[0])) { core -> sendMsg(addr, "Nie ma takiego bana!"); return; }
+
 			voteTarget = params[0];
 			int timeout = settings -> GetInt("vote_timeout");
 			state = Voting;

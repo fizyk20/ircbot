@@ -24,6 +24,9 @@ public:
 	CBotCore(QApplication*);
 	~CBotCore();
 	
+	QString getNick();
+	QString getChannel();
+
 	void handleRawEvent(const char* event, const CBotPlugin* handler, const char* slot);
 	void handleEvent(const char* event, const CBotPlugin* handler, const char* slot);
 	void registerCommand(QString command, CBotPlugin* handler);
