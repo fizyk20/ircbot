@@ -1,5 +1,6 @@
 #include "CBotCore.h"
 #include <QDateTime>
+#include <QRegExp>
 #include "CUsers.h"
 #include "roll.h"
 #include "randomchat.h"
@@ -280,6 +281,19 @@ void CBotCore::packQuit(IrcParams p)
 
 void CBotCore::packMode(IrcParams p)
 {
+	if(p.params.size() > 3 && p.params[1] == kanal && p.params[2] == "+b")
+	{
+		CUsers* users = (CUsers*) getPlugin("users");
+		int id = users -> Find(nick);
+		if(id == -1) return;
+		User u = (*users)[id];
+		QRegExp rx(p.params[3]);
+		if(rx.exactMatch(u.nick + "!" + u.name + "@" + u.mask))
+		{
+			sess -> Mode(p.params[1], "-b", p.params[3]);
+			return;
+		}
+	}
 	QString temp;
 	
 	temp = p.params[0];
@@ -304,6 +318,11 @@ void CBotCore::packMode(IrcParams p)
 
 void CBotCore::packKick(IrcParams p)
 {
+	if(p.params[2] == nick)
+	{
+		sess -> Join(kanal);
+		return;
+	}
 	QString temp = p.params[2];
 	temp += tr(" został wyrzucony z ") + p.params[1];
 	temp += " przez " + p.params[0];
