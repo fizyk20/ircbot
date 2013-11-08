@@ -399,14 +399,14 @@ CCorePlugin::CCorePlugin(CBotCore* c, CBotSettings* s)
 	core -> registerCommand("rejoin", this);
 }
 
-void CCorePlugin::executeCommand(QString command, QStringList, QString, QString)
+void CCorePlugin::executeCommand(QString command, QStringList, QString, QString sender)
 {
 	if(command == "rejoin")
 	{
 		core -> session() -> Join(core -> getChannel());
 		return;
 	}
-	if(command == "quit")
+	if(command == "quit" && core -> master(sender))
 	{
 		core -> botQuit();
 		return;
