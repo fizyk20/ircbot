@@ -399,6 +399,10 @@ CCorePlugin::CCorePlugin(CBotCore* c, CBotSettings* s)
 	core -> registerCommand("rejoin", this);
 }
 
+CCorePlugin::~CCorePlugin()
+{
+}
+
 void CCorePlugin::executeCommand(QString command, QStringList, QString, QString sender)
 {
 	if(command == "rejoin")
