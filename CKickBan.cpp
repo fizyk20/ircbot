@@ -61,6 +61,8 @@ CKickBan::CKickBan(CBotCore* c, CBotSettings* s)
 	state = Waiting;
 	next_id = 0;
 
+	core -> registerCommand("vote", this);
+
 	core -> registerCommand("kick", this);
 	core -> registerCommand("ban", this);
 	core -> registerCommand("unban", this);
@@ -86,6 +88,35 @@ CKickBan::~CKickBan()
 void CKickBan::executeCommand(QString command, QStringList params, QString addr, QString sender)
 {
 	CUsers* users = (CUsers*) core -> getPlugin("users");
+	if(command == "vote" && core -> master(sender))
+	{
+		if(params.length() < 1)
+		{
+			core -> sendMsg(addr, "Za mało parametrów!");
+			return;
+		}
+		if(params[0] == "pass_min")
+		{
+			if(params.length() < 2)
+			{
+				core -> sendMsg(addr, "Za mało parametrów!");
+				return;
+			}
+			settings -> SetDouble("vote_pass_min", params[1].toDouble());
+			return;
+		}
+		if(params[0] == "timeout")
+		{
+			if(params.length() < 2)
+			{
+				core -> sendMsg(addr, "Za mało parametrów!");
+				return;
+			}
+			settings -> SetInt("vote_timeout", params[1].toInt());
+			return;
+		}
+		return;
+	}
 	if(state == Waiting)
 	{
 		if(command == "kick")
