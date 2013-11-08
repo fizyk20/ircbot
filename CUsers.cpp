@@ -216,6 +216,16 @@ User CUsers::operator[](int i)
 	return users[i];
 }
 
+int CUsers::presentUsers()
+{
+	int i, result;
+	result = 0;
+	for(i=0; i<users.size(); i++)
+		if(users[i].present) result++;
+	result--;	// take the bot into account
+	return result;
+}
+
 void CUsers::packMode(IrcParams par)
 {
 	int i,j;

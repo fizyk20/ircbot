@@ -53,6 +53,8 @@ public:
 	int Find(QString nick);
 	User operator[](int i);
 	
+	int presentUsers();
+
 public slots:
 	void packMode(IrcParams);
 	void packNick(IrcParams);
