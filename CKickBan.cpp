@@ -1,5 +1,6 @@
 #include "CKickBan.h"
 #include "CUsers.h"
+#include <QTimer>
 
 Vote::Vote()
 {
@@ -10,37 +11,45 @@ Vote::~Vote()
 {
 }
 
-void Vote::voteFor()
+bool Vote::voteFor(QString nick)
 {
+	if(voted.contains(nick)) return false;
+	voted.push_back(nick);
 	vFor ++;
+	return true;
 }
 
-void Vote::voteAgainst()
+bool Vote::voteAgainst(QString nick)
 {
+	if(voted.contains(nick)) return false;
+	voted.push_back(nick);
 	vAgainst ++;
+	return true;
 }
 
-void Vote::voteNone()
+bool Vote::voteNone(QString nick)
 {
+	if(voted.contains(nick)) return false;
+	voted.push_back(nick);
 	vNone ++;
+	return true;
 }
 
 double Vote::resultFor()
 {
-	if(vFor + vAgainst + vNone == 0) return 0.;
-	return double(vFor) / (vFor + vAgainst + vNone);
+	if(vFor + vAgainst == 0) return 0.;
+	return double(vFor) / (vFor + vAgainst);
 }
 
 double Vote::resultAgainst()
 {
-	if(vFor + vAgainst + vNone == 0) return 0.;
-	return double(vAgainst) / (vFor + vAgainst + vNone);
+	if(vFor + vAgainst == 0) return 0.;
+	return double(vAgainst) / (vFor + vAgainst);
 }
 
-double Vote::resultNone()
+int Vote::numVotes()
 {
-	if(vFor + vAgainst + vNone == 0) return 0.;
-	return double(vNone) / (vFor + vAgainst + vNone);
+	return vFor + vAgainst + vNone;
 }
 
 /*********************************************************************/
@@ -60,6 +69,9 @@ CKickBan::CKickBan(CBotCore* c, CBotSettings* s)
 	core -> registerCommand("voteban", this);
 	core -> registerCommand("voteunban", this);
 
+	core -> registerCommand("yes", this);
+	core -> registerCommand("no", this);
+
 	core -> handleRawEvent(SIGNAL(evBanList(IrcParams)), this, SLOT(evBanList(IrcParams)));
 	core -> handleRawEvent(SIGNAL(evEndBanList()), this, SLOT(evEndBanList()));
 	core -> handleRawEvent(SIGNAL(packMode(IrcParams)), this, SLOT(packMode(IrcParams)));
@@ -74,80 +86,206 @@ CKickBan::~CKickBan()
 void CKickBan::executeCommand(QString command, QStringList params, QString addr, QString sender)
 {
 	CUsers* users = (CUsers*) core -> getPlugin("users");
-	if(command == "kick")
+	if(state == Waiting)
 	{
-		if(! core -> master(sender))
+		if(command == "kick")
 		{
-			core -> sendMsg(addr, "Nie masz uprawnień do wydania tej komendy.");
-			return;
+			if(! core -> master(sender))
+			{
+				core -> sendMsg(addr, "Nie masz uprawnień do wydania tej komendy.");
+				return;
+			}
+			if(params.length() < 1)
+			{
+				core -> sendMsg(addr, "Za mało parametrów!");
+				return;
+			}
+			if(users -> Find(params[0]) == -1)
+			{
+				core -> sendMsg(addr, "Nie ma takiego użytkownika!");
+				return;
+			}
+			core -> kickUser(params[0], (params.length() > 1) ? params[1] : "");
 		}
-		if(params.length() < 1)
+		else if(command == "ban")
 		{
-			core -> sendMsg(addr, "Za mało parametrów!");
-			return;
+			if(! core -> master(sender))
+			{
+				core -> sendMsg(addr, "Nie masz uprawnień do wydania tej komendy.");
+				return;
+			}
+			if(params.length() < 1)
+			{
+				core -> sendMsg(addr, "Za mało parametrów!");
+				return;
+			}
+			int id = users -> Find(params[0]);
+			if(id == -1)
+			{
+				core -> sendMsg(addr, "Nie ma takiego użytkownika.");
+				return;
+			}
+			User u = (*users)[id];
+			ban(u.nick, "*!*@" + u.mask);
+			core -> kickUser(params[0], (params.length() > 1) ? params[1] : "");
 		}
-		core -> kickUser(params[0], (params.length() > 1) ? params[1] : "");
-	}
-	else if(command == "ban")
-	{
-		if(! core -> master(sender))
+		else if(command == "unban")
 		{
-			core -> sendMsg(addr, "Nie masz uprawnień do wydania tej komendy.");
-			return;
+			if(! core -> master(sender))
+			{
+				core -> sendMsg(addr, "Nie masz uprawnień do wydania tej komendy.");
+				return;
+			}
+			if(params.length() < 1)
+			{
+				core -> sendMsg(addr, "Za mało parametrów!");
+				return;
+			}
+			if(! bans.contains(params[0]))
+			{
+				core -> sendMsg(addr, "Nie ma bana o takiej nazwie!");
+				return;
+			}
+			unban(params[0]);
 		}
-		if(params.length() < 1)
+		else if(command == "banlist")
 		{
-			core -> sendMsg(addr, "Za mało parametrów!");
-			return;
+			list_reply = addr;
+			core -> channelMode("b", "");
 		}
-		int id = users -> Find(params[0]);
-		if(id == -1)
-		{
-			core -> sendMsg(addr, "Nie ma takiego użytkownika.");
-			return;
-		}
-		User u = (*users)[id];
-		bans[u.nick] = "*!*@" + u.mask;
-		core -> channelMode("+b", "*!*@" + u.mask);
-		core -> kickUser(params[0], (params.length() > 1) ? params[1] : "");
-	}
-	else if(command == "unban")
-	{
-		if(! core -> master(sender))
-		{
-			core -> sendMsg(addr, "Nie masz uprawnień do wydania tej komendy.");
-			return;
-		}
-		if(params.length() < 1)
-		{
-			core -> sendMsg(addr, "Za mało parametrów!");
-			return;
-		}
-		if(! bans.contains(params[0]))
-		{
-			core -> sendMsg(addr, "Nie ma bana o takiej nazwie!");
-			return;
-		}
-		core -> channelMode("-b", bans[params[0]]);
-		bans.remove(params[0]);
-	}
-	else if(command == "banlist")
-	{
-		list_reply = addr;
-		core -> channelMode("b", "");
-	}
-	else if(command == "votekick")
-	{
 
-	}
-	else if(command == "voteban")
-	{
+		/**** Votes ****/
 
+		else if(command == "votekick")
+		{
+			if(params.length() < 1)
+			{
+				core -> sendMsg(addr, "Za mało parametrów!");
+				return;
+			}
+			if(users -> Find(params[0]) == -1)
+			{
+				core -> sendMsg(addr, "Nie ma takiego użytkownika!");
+				return;
+			}
+			voteTarget = params[0];
+			int timeout = settings -> GetInt("vote_timeout");
+			state = Voting;
+			voteType = Kick;
+			vote = new Vote;
+			core -> sendMsgChannel("Głosowanie nad kickiem dla " + params[0] + ".");
+			core -> sendMsgChannel("W ciągu następnych " + QString::number(timeout/1000) + " sekund wpisz \"!yes\" (głos za), \"!no\" (głos przeciw) albo \"!whatever\" (wstrzymanie się).");
+			QTimer::singleShot(timeout, this, SLOT(endVote()));
+		}
+		else if(command == "voteban")
+		{
+			if(params.length() < 1)
+			{
+				core -> sendMsg(addr, "Za mało parametrów!");
+				return;
+			}
+			int id = users -> Find(params[0]);
+			if(id == -1)
+			{
+				core -> sendMsg(addr, "Nie ma takiego użytkownika!");
+				return;
+			}
+			voteTarget = params[0];
+			voteMask = "*!*@" + (*users)[id].mask;
+			int timeout = settings -> GetInt("vote_timeout");
+			state = Voting;
+			voteType = Ban;
+			vote = new Vote;
+			core -> sendMsgChannel("Głosowanie nad banem dla " + params[0] + ".");
+			core -> sendMsgChannel("W ciągu następnych " + QString::number(timeout/1000) + " sekund wpisz \"!yes\" (głos za), \"!no\" (głos przeciw) albo \"!whatever\" (wstrzymanie się).");
+			QTimer::singleShot(timeout, this, SLOT(endVote()));
+		}
+		else if(command == "voteunban")
+		{
+			if(params.length() < 1)
+			{
+				core -> sendMsg(addr, "Za mało parametrów!");
+				return;
+			}
+			if(! bans.contains(params[0]))
+			{
+				core -> sendMsg(addr, "Nie ma takiego bana!");
+				return;
+			}
+			voteTarget = params[0];
+			int timeout = settings -> GetInt("vote_timeout");
+			state = Voting;
+			voteType = Unban;
+			vote = new Vote;
+			core -> sendMsgChannel("Głosowanie nad zdjęciem bana dla " + params[0] + ".");
+			core -> sendMsgChannel("W ciągu następnych " + QString::number(timeout/1000) + " sekund wpisz \"!yes\" (głos za), \"!no\" (głos przeciw) albo \"!whatever\" (wstrzymanie się).");
+			QTimer::singleShot(timeout, this, SLOT(endVote()));
+		}
+		else
+		{
+			core -> sendMsg(addr, "Ta komenda jest teraz nieaktywna.");
+			return;
+		}
 	}
-	else if(command == "voteunban")
+	else if(state == Voting)
 	{
-
+		if(command == "yes")
+		{
+			if(! vote -> voteFor(sender))
+			{
+				core -> sendMsg(addr, "Już głosowałeś/aś w tym głosowaniu!");
+				return;
+			}
+			if(vote -> numVotes() == users -> presentUsers())
+			{
+				endVote();
+				return;
+			}
+		}
+		else if(command == "no")
+		{
+			if(! vote -> voteAgainst(sender))
+			{
+				core -> sendMsg(addr, "Już głosowałeś/aś w tym głosowaniu!");
+				return;
+			}
+			if(vote -> numVotes() == users -> presentUsers())
+			{
+				endVote();
+				return;
+			}
+		}
+		else if(command == "whatever")
+		{
+			if(! vote -> voteNone(sender))
+			{
+				core -> sendMsg(addr, "Już głosowałeś/aś w tym głosowaniu!");
+				return;
+			}
+			if(vote -> numVotes() == users -> presentUsers())
+			{
+				endVote();
+				return;
+			}
+		}
+		else
+		{
+			core -> sendMsg(addr, "Ta komenda jest teraz nieaktywna.");
+			return;
+		}
 	}
+}
+
+void CKickBan::ban(QString nick, QString mask)
+{
+	bans[nick] = mask;
+	core -> channelMode("+b", mask);
+}
+
+void CKickBan::unban(QString nick)
+{
+	core -> channelMode("-b", bans[nick]);
+	bans.remove(nick);
 }
 
 void CKickBan::evBanList(IrcParams p)
@@ -171,4 +309,39 @@ void CKickBan::evEndBanList()
 void CKickBan::packMode(IrcParams p)
 {
 
+}
+
+void CKickBan::endVote()
+{
+	if(vote == NULL) return;
+
+	if(vote -> numVotes() < settings -> GetInt("vote_min_votes"))
+		core -> sendMsgChannel("Zbyt niska frekwencja.");
+	else
+	{
+		if(vote -> resultFor() < settings -> GetDouble("vote_pass_min"))
+			core -> sendMsgChannel("Wynik głosowania: przeciw.");
+		else
+		{
+			core -> sendMsgChannel("Wynik głosowania: za.");
+
+			switch(voteType)
+			{
+			case Kick:
+				core -> kickUser(voteTarget, "Lud przemówił.");
+				break;
+			case Ban:
+				ban(voteTarget, voteMask);
+				core -> kickUser(voteTarget, "Lud przemówił.");
+				break;
+			case Unban:
+				unban(voteTarget);
+				break;
+			}
+		}
+	}
+
+	state = Waiting;
+	delete vote;
+	vote = NULL;
 }
