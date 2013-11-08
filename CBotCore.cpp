@@ -399,6 +399,7 @@ CCorePlugin::CCorePlugin(CBotCore* c, CBotSettings* s)
 	: CBotPlugin(c, s)
 {
 	core -> registerCommand("rejoin", this);
+	core -> registerCommand("quit", this);
 }
 
 CCorePlugin::~CCorePlugin()
