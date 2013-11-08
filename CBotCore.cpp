@@ -19,6 +19,7 @@ CBotCore::CBotCore(QApplication* app)
 	wnd = new CWindow;
 	
 	connect(app, SIGNAL(aboutToQuit()), this, SLOT(programEnd()));
+	connect(this, SIGNAL(quit()), app, SLOT(quit()));
 	
 	connect(wnd, SIGNAL(botConnect()), this, SLOT(botConnect()));
 	connect(wnd, SIGNAL(botDisconnect()), this, SLOT(botDisconnect()));
@@ -52,6 +53,7 @@ CBotCore::CBotCore(QApplication* app)
 	
 	//load "plugins"
 	plugins.clear();
+	plugins.push_back(new CCorePlugin(this, settings));
 	plugins.push_back(new CUsers(this, settings));
 	plugins.push_back(new CRoll(this, settings));
 	plugins.push_back(new CRandomChat(this, settings));
@@ -75,6 +77,11 @@ QString CBotCore::getNick()
 QString CBotCore::getChannel()
 {
 	return kanal;
+}
+
+void CBotCore::botQuit()
+{
+	emit quit();
 }
 
 void CBotCore::handleRawEvent(const char* event, const CBotPlugin* handler, const char* slot)
@@ -382,4 +389,26 @@ CBotPlugin::CBotPlugin(CBotCore* c, CBotSettings* s)
 
 CBotPlugin::~CBotPlugin()
 {
+}
+
+/****************************************************************************/
+
+CCorePlugin::CCorePlugin(CBotCore* c, CBotSettings* s)
+	: CBotPlugin(c, s)
+{
+	core -> registerCommand("rejoin", this);
+}
+
+void CCorePlugin::executeCommand(QString command, QStringList, QString, QString)
+{
+	if(command == "rejoin")
+	{
+		core -> session() -> Join(core -> getChannel());
+		return;
+	}
+	if(command == "quit")
+	{
+		core -> botQuit();
+		return;
+	}
 }
