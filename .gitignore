@@ -1,0 +1,9 @@
+*.o
+moc_*
+log.txt
+users.ini
+randomchat.dat
+.project
+.cproject
+Makefile
+IrcBotQt
