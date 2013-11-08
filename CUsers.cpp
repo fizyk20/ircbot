@@ -141,7 +141,7 @@ void CUsers::aktualizuj()
 		file.open(QIODevice::WriteOnly | QIODevice::Text);
 
 		QTextStream out(&file);
-		out << presentUsers() << "\n";
+		out << presentUsers() + 1 << "\n"; // take the bot into account
 		int i;
 		for(i=0; i<users.size(); i++)
 			if(users[i].present) out << users[i].nick + "\n";
