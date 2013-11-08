@@ -107,10 +107,10 @@ void RussianThread::run()
 		}
 		User u = (*users)[n];
 		core -> sendMsgChannel("Jeb!");
-		core -> channelMode("+b", u.mask);
+		core -> channelMode("+b", "*!*@" + u.mask);
 		core -> kickUser(u.nick, "Przegrałeś.");
 		Dead d;
-		d.mask = u.mask;
+		d.mask = "*!*@" + u.mask;
 		d.nick = player;
 		russian -> addDead(d);
 		QTimer::singleShot(20000, russian, SLOT(unban()));

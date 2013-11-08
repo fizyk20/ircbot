@@ -13,6 +13,7 @@ struct User
 	int status;
 	bool present;
 	QString nick;
+	QString name;
 	QString mask;
 	QString seen;
 };
@@ -61,6 +62,7 @@ public slots:
 	void packKick(IrcParams);
 	void packPrivMsg(IrcParams);
 	void evNameReply(IrcParams);
+	void evWhoIsUser(IrcParams);
 	void botDisconnected();
 };
 

@@ -32,6 +32,7 @@ CUsers::CUsers(CBotCore* c, CBotSettings* s)
 	core->handleRawEvent(SIGNAL(packKick(IrcParams)), this, SLOT(packKick(IrcParams)));
 	core->handleRawEvent(SIGNAL(packPrivMsg(IrcParams)), this, SLOT(packPrivMsg(IrcParams)));
 	core->handleRawEvent(SIGNAL(evNameReply(IrcParams)), this, SLOT(evNameReply(IrcParams)));
+	core->handleRawEvent(SIGNAL(evWhoIsUser(IrcParams)), this, SLOT(evWhoIsUser(IrcParams)));
 	core->handleRawEvent(SIGNAL(disconnected()), this, SLOT(botDisconnected()));
 	core->registerCommand("seen", this);
 	core->registerCommand("wakeup", this);
@@ -193,6 +194,7 @@ void CUsers::Load()
 		u.seen = data;
 		u.present = false;
 		u.status = 0;
+		u.name = "";
 		u.mask = "";
 		if(u.nick.length()>0)
 			users.push_back(u);
@@ -315,7 +317,18 @@ void CUsers::Join(QString nick, QString mask)
 	User u;
 
 	u.nick = remove_prefix(nick);
-	u.mask = mask;
+	int iExcl = mask.indexOf('!');
+	int iAt = mask.indexOf('@');
+	if(iExcl == -1 || iAt == -1)
+	{
+		u.name = "";
+		u.mask = mask;
+	}
+	else
+	{
+		u.name = mask.mid(iExcl+1, iAt-iExcl-1);
+		u.mask = mask.mid(iAt+1);
+	}
 	u.status = status(nick);
 	u.seen = date();
 	u.present = true;
@@ -365,7 +378,18 @@ void CUsers::packPrivMsg(IrcParams p)
 	int n = Find(p.params[0]);
 	if(n==-1) return;
 	users[n].seen = date();
-	users[n].mask = p.mask;
+	int iExcl = p.mask.indexOf('!');
+	int iAt = p.mask.indexOf('@');
+	if(iExcl == -1 || iAt == -1)
+	{
+		users[n].name = "";
+		users[n].mask = p.mask;
+	}
+	else
+	{
+		users[n].name = p.mask.mid(iExcl+1, iAt-iExcl-1);
+		users[n].mask = p.mask.mid(iAt+1);
+	}
 	users[n].present = true;
 }
 
@@ -375,9 +399,21 @@ void CUsers::evNameReply(IrcParams p)
 	for(i=0; i<p.params.size(); i++)
 	{
 		Join(p.params[i], "");
+		core -> session() -> WhoIs(p.params[i]);
 	}
 	
 	aktualizuj();
+}
+
+void CUsers::evWhoIsUser(IrcParams p)
+{
+	QString nick = p.params[1];
+	QString name = p.params[2];
+	QString mask = p.params[3];
+	int i = Find(nick);
+	if(i == -1) return;
+	users[i].name = name;
+	users[i].mask = mask;
 }
 
 void CUsers::botDisconnected()
