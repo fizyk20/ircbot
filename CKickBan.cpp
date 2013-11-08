@@ -107,8 +107,8 @@ void CKickBan::executeCommand(QString command, QStringList params, QString addr,
 			return;
 		}
 		User u = (*users)[id];
-		bans[u.nick] = u.mask;
-		core -> channelMode("+b", u.mask);
+		bans[u.nick] = "*!*@" + u.mask;
+		core -> channelMode("+b", "*!*@" + u.mask);
 		core -> kickUser(params[0], (params.length() > 1) ? params[1] : "");
 	}
 	else if(command == "unban")
@@ -152,9 +152,9 @@ void CKickBan::executeCommand(QString command, QStringList params, QString addr,
 
 void CKickBan::evBanList(IrcParams p)
 {
-	if(bans.key(p.params[1]) == "")
+	if(bans.key(p.params[3]) == "")
 	{
-		bans["ban" + QString::number(next_id)] = p.params[1];
+		bans["ban" + QString::number(next_id)] = p.params[3];
 		next_id++;
 	}
 }

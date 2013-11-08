@@ -399,7 +399,7 @@ void CUsers::evNameReply(IrcParams p)
 	for(i=0; i<p.params.size(); i++)
 	{
 		Join(p.params[i], "");
-		core -> session() -> WhoIs(p.params[i]);
+		core -> session() -> WhoIs(remove_prefix(p.params[i]));
 	}
 	
 	aktualizuj();
@@ -407,9 +407,9 @@ void CUsers::evNameReply(IrcParams p)
 
 void CUsers::evWhoIsUser(IrcParams p)
 {
-	QString nick = p.params[1];
-	QString name = p.params[2];
-	QString mask = p.params[3];
+	QString nick = p.params[2];
+	QString name = p.params[3];
+	QString mask = p.params[4];
 	int i = Find(nick);
 	if(i == -1) return;
 	users[i].name = name;
