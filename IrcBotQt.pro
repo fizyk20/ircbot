@@ -22,7 +22,8 @@ HEADERS += CBotCore.h \
            roll.h \
            russian.h \
            badwords.h \
-           antiflood.h
+           antiflood.h \
+           CKickBan.h
 SOURCES += CBotCore.cpp \
            CBotSettings.cpp \
            CEightball.cpp \
@@ -35,4 +36,5 @@ SOURCES += CBotCore.cpp \
            roll.cpp \
            russian.cpp \
            badwords.cpp \
-           antiflood.cpp
+           antiflood.cpp \
+           CKickBan.cpp

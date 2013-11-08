@@ -170,8 +170,18 @@ int CIrcSession::ProcessPacket(IrcPacket p)
 				break;
 			case RPL_ENDOFNAMES:
 				break;
+			case RPL_BANLIST:
+				emit evBanList(par);
+				break;
+			case RPL_ENDOFBANLIST:
+				emit evEndBanList();
+				break;
+			case RPL_WHOISUSER:
+				emit evWhoIsUser(par);
+				break;
 			case ERR_NICKNAMEINUSE:
 				emit evNickInUse();
+				break;
 			default:
 				break;
 		}
@@ -179,11 +189,19 @@ int CIrcSession::ProcessPacket(IrcPacket p)
 	return 0;
 }
 
-//poszczególne pakiety
-
-int CIrcSession::Nick(QString nick)
+void CIrcSession::sendPacket(IrcPacket pack)
 {
 	QString a;
+	a = StructToPacket(pack);
+
+	QByteArray pom = a.toUtf8();
+	writeData(pom.data(),pom.size());
+}
+
+//poszczególne pakiety
+
+void CIrcSession::Nick(QString nick)
+{
 	IrcPacket pack;
 	
 	pack.hdr = "";
@@ -191,17 +209,11 @@ int CIrcSession::Nick(QString nick)
 	pack.params.clear();
 	pack.params.push_back(nick);
 	
-	a = StructToPacket(pack);
-	
-	QByteArray pom = a.toUtf8();
-	writeData(pom.data(),pom.size());
-	
-	return 0;
+	sendPacket(pack);
 }
 
-int CIrcSession::User(QString uname,QString host,QString name)
+void CIrcSession::User(QString uname,QString host,QString name)
 {
-	QString a;
 	IrcPacket pack;
 	
 	pack.hdr = "";
@@ -212,17 +224,11 @@ int CIrcSession::User(QString uname,QString host,QString name)
 	pack.params.push_back(QString("\"") + server + "\"");
 	pack.params.push_back(name);
 	
-	a=StructToPacket(pack);
-	
-	QByteArray pom = a.toUtf8();
-	writeData(pom.data(),pom.size());
-	
-	return 0;
+	sendPacket(pack);
 }
 
-int CIrcSession::Quit(QString reason)
+void CIrcSession::Quit(QString reason)
 {
-	QString a;
 	IrcPacket pack;
 	
 	pack.hdr = "";
@@ -230,21 +236,15 @@ int CIrcSession::Quit(QString reason)
 	pack.params.clear();
 	pack.params.push_back(reason);
 	
-	a=StructToPacket(pack);
-	
-	QByteArray pom = a.toUtf8();
-	writeData(pom.data(),pom.size());
+	sendPacket(pack);
 	
 	server = "";
 	port=0;
 	close();
-
-	return 0;
 }
 
-int CIrcSession::Join(QString channel)
+void CIrcSession::Join(QString channel)
 {
-	QString a;
 	IrcPacket pack;
 	
 	pack.hdr = "";
@@ -252,17 +252,11 @@ int CIrcSession::Join(QString channel)
 	pack.params.clear();
 	pack.params.push_back(channel);
 	
-	a=StructToPacket(pack);
-	
-	QByteArray pom = a.toUtf8();
-	writeData(pom.data(),pom.size());
-	
-	return 0;
+	sendPacket(pack);
 }
 
-int CIrcSession::Part(QString channel)
+void CIrcSession::Part(QString channel)
 {
-	QString a;
 	IrcPacket pack;
 	
 	pack.hdr = "";
@@ -270,17 +264,11 @@ int CIrcSession::Part(QString channel)
 	pack.params.clear();
 	pack.params.push_back(channel);
 	
-	a=StructToPacket(pack);
-	
-	QByteArray pom = a.toUtf8();
-	writeData(pom.data(),pom.size());
-	
-	return 0;
+	sendPacket(pack);
 }
 
-int CIrcSession::PrivMsg(QString to,QString text)
+void CIrcSession::PrivMsg(QString to,QString text)
 {
-	QString a;
 	IrcPacket pack;
 	
 	pack.hdr = "";
@@ -289,17 +277,11 @@ int CIrcSession::PrivMsg(QString to,QString text)
 	pack.params.push_back(to);
 	pack.params.push_back(text);
 	
-	a=StructToPacket(pack);
-	
-	QByteArray pom = a.toUtf8();
-	writeData(pom.data(),pom.size());
-	
-	return 0;
+	sendPacket(pack);
 }
 
-int CIrcSession::Kick(QString channel,QString nick,QString text)
+void CIrcSession::Kick(QString channel,QString nick,QString text)
 {
-	QString a;
 	IrcPacket pack;
 	
 	pack.hdr = "";
@@ -309,17 +291,11 @@ int CIrcSession::Kick(QString channel,QString nick,QString text)
 	pack.params.push_back(nick);
 	pack.params.push_back(text);
 	
-	a=StructToPacket(pack);
-	
-	QByteArray pom = a.toUtf8();
-	writeData(pom.data(),pom.size());
-	
-	return 0;
+	sendPacket(pack);
 }
 
-int CIrcSession::Mode(QString who,QString mode,QString param)
+void CIrcSession::Mode(QString who,QString mode,QString param)
 {
-	QString a;
 	IrcPacket pack;
 	
 	pack.hdr = "";
@@ -327,31 +303,34 @@ int CIrcSession::Mode(QString who,QString mode,QString param)
 	pack.params.clear();
 	pack.params.push_back(who);
 	pack.params.push_back(mode);
-	pack.params.push_back(param);
+	if(param != "")
+		pack.params.push_back(param);
 	
-	a=StructToPacket(pack);
-	
-	QByteArray pom = a.toUtf8();
-	writeData(pom.data(),pom.size());
-	
-	return 0;
+	sendPacket(pack);
 }
 
-int CIrcSession::Pong(QString param)
+void CIrcSession::Pong(QString param)
 {
-	QString a;
 	IrcPacket pack;
 	
 	pack.hdr = "";
 	pack.command = "PONG";
 	pack.params.clear();
 	pack.params.push_back(param);
-	a=StructToPacket(pack);
 	
-	QByteArray pom = a.toUtf8();
-	writeData(pom.data(),pom.size());
-	
-	return 0;
+	sendPacket(pack);
+}
+
+void CIrcSession::WhoIs(QString nick)
+{
+	IrcPacket pack;
+
+	pack.hdr = "";
+	pack.command = "WHOIS";
+	pack.params.clear();
+	pack.params.push_back(nick);
+
+	sendPacket(pack);
 }
 
 /******************************************************************/

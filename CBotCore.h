@@ -37,6 +37,8 @@ public:
 	void channelMode(QString, QString);
 	void kickUser(QString, QString);
 	
+	CIrcSession* session();
+
 public slots:
 	void botConnect();
 	void botDisconnect();

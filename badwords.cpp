@@ -98,7 +98,7 @@ void Badwords::BadwordFound(int id, QString nick, QString mask, QString badword)
 		warns[i].number++;
 		if(warns[i].number >= settings->GetInt("max_warnings"))
 		{
-			core -> channelMode("+b", mask);
+			core -> channelMode("+b", "*!*@" + mask);
 			warns.erase(warns.begin()+i);
 		}
 	}
@@ -106,7 +106,7 @@ void Badwords::BadwordFound(int id, QString nick, QString mask, QString badword)
 	{
 		if(1 >= settings->GetInt("max_warnings"))
 		{
-			core -> channelMode("+b", mask);
+			core -> channelMode("+b", "*!*@" + mask);
 		}
 		else
 		{

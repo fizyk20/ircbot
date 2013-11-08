@@ -203,16 +203,18 @@ public:
 	
 	int ProcessPacket(IrcPacket);
 	
+	void sendPacket(IrcPacket);
 	//poszczególne pakiety
-	int Nick(QString);
-	int User(QString,QString,QString);
-	int Quit(QString);
-	int Join(QString channel);
-	int Part(QString channel);
-	int PrivMsg(QString to,QString text);
-	int Kick(QString channel,QString nick,QString text);
-	int Mode(QString who,QString mode,QString param);
-	int Pong(QString param);
+	void Nick(QString);
+	void User(QString,QString,QString);
+	void Quit(QString);
+	void Join(QString channel);
+	void Part(QString channel);
+	void PrivMsg(QString to,QString text);
+	void Kick(QString channel,QString nick,QString text);
+	void Mode(QString who,QString mode,QString param);
+	void Pong(QString param);
+	void WhoIs(QString nick);
 	
 public slots:
 	void connectedSlot();
@@ -234,6 +236,9 @@ signals:
 	void evMOTD(QString);
 	void evNameReply(IrcParams);
 	void evNickInUse();
+	void evBanList(IrcParams);
+	void evEndBanList();
+	void evWhoIsUser(IrcParams);
 };
 
 IrcPacket PacketToStruct(QString);

@@ -13,6 +13,7 @@ struct User
 	int status;
 	bool present;
 	QString nick;
+	QString name;
 	QString mask;
 	QString seen;
 };
@@ -52,6 +53,8 @@ public:
 	int Find(QString nick);
 	User operator[](int i);
 	
+	int presentUsers();
+
 public slots:
 	void packMode(IrcParams);
 	void packNick(IrcParams);
@@ -61,6 +64,7 @@ public slots:
 	void packKick(IrcParams);
 	void packPrivMsg(IrcParams);
 	void evNameReply(IrcParams);
+	void evWhoIsUser(IrcParams);
 	void botDisconnected();
 };
 

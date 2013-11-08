@@ -8,6 +8,7 @@
 #include "russian.h"
 #include "badwords.h"
 #include "antiflood.h"
+#include "CKickBan.h"
 
 CBotCore::CBotCore(QCoreApplication* app)
 {
@@ -58,6 +59,7 @@ CBotCore::CBotCore(QCoreApplication* app)
 	plugins.push_back(new CRussian(this, settings));
 	plugins.push_back(new Badwords(this, settings));
 	plugins.push_back(new AntiFlood(this, settings));
+	plugins.push_back(new CKickBan(this, settings));
 
 	wnd -> clickedConnect();
 }
@@ -139,6 +141,11 @@ void CBotCore::channelMode(QString mode, QString params)
 void CBotCore::kickUser(QString who, QString reason)
 {
 	sess -> Kick(kanal, who, reason);
+}
+
+CIrcSession* CBotCore::session()
+{
+	return sess;
 }
 
 void CBotCore::botConnect()
