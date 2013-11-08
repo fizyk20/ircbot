@@ -68,6 +68,16 @@ CBotCore::~CBotCore()
 {
 }
 
+QString CBotCore::getNick()
+{
+	return nick;
+}
+
+QString CBotCore::getChannel()
+{
+	return kanal;
+}
+
 void CBotCore::handleRawEvent(const char* event, const CBotPlugin* handler, const char* slot)
 {
 	connect(sess, event, handler, slot);
@@ -140,6 +150,7 @@ void CBotCore::channelMode(QString mode, QString params)
 
 void CBotCore::kickUser(QString who, QString reason)
 {
+	if(who == nick) return;
 	sess -> Kick(kanal, who, reason);
 }
 
