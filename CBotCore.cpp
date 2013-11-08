@@ -141,6 +141,11 @@ void CBotCore::kickUser(QString who, QString reason)
 	sess -> Kick(kanal, who, reason);
 }
 
+CIrcSession* CBotCore::session()
+{
+	return sess;
+}
+
 void CBotCore::botConnect()
 {
 	Log("*** Łączenie... " + serwer + ":" + port);
