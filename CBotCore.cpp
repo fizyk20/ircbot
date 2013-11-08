@@ -1,5 +1,6 @@
 #include "CBotCore.h"
 #include <QDateTime>
+#include <QRegExp>
 #include "CUsers.h"
 #include "roll.h"
 #include "randomchat.h"
@@ -18,6 +19,7 @@ CBotCore::CBotCore(QCoreApplication* app)
 	wnd = new CWindow;
 	
 	connect(app, SIGNAL(aboutToQuit()), this, SLOT(programEnd()));
+	connect(this, SIGNAL(quit()), app, SLOT(quit()));
 	
 	connect(wnd, SIGNAL(botConnect()), this, SLOT(botConnect()));
 	connect(wnd, SIGNAL(botDisconnect()), this, SLOT(botDisconnect()));
@@ -51,6 +53,7 @@ CBotCore::CBotCore(QCoreApplication* app)
 	
 	//load "plugins"
 	plugins.clear();
+	plugins.push_back(new CCorePlugin(this, settings));
 	plugins.push_back(new CUsers(this, settings));
 	plugins.push_back(new CRoll(this, settings));
 	plugins.push_back(new CRandomChat(this, settings));
@@ -76,6 +79,11 @@ QString CBotCore::getNick()
 QString CBotCore::getChannel()
 {
 	return kanal;
+}
+
+void CBotCore::botQuit()
+{
+	emit quit();
 }
 
 void CBotCore::handleRawEvent(const char* event, const CBotPlugin* handler, const char* slot)
@@ -282,6 +290,19 @@ void CBotCore::packQuit(IrcParams p)
 
 void CBotCore::packMode(IrcParams p)
 {
+	if(p.params.size() > 3 && p.params[1] == kanal && p.params[2] == "+b")
+	{
+		CUsers* users = (CUsers*) getPlugin("users");
+		int id = users -> Find(nick);
+		if(id == -1) return;
+		User u = (*users)[id];
+		QRegExp rx(p.params[3]);
+		if(rx.exactMatch(u.nick + "!" + u.name + "@" + u.mask))
+		{
+			sess -> Mode(p.params[1], "-b", p.params[3]);
+			return;
+		}
+	}
 	QString temp;
 	
 	temp = p.params[0];
@@ -306,6 +327,11 @@ void CBotCore::packMode(IrcParams p)
 
 void CBotCore::packKick(IrcParams p)
 {
+	if(p.params[2] == nick)
+	{
+		sess -> Join(kanal);
+		return;
+	}
 	QString temp = p.params[2];
 	temp += tr(" został wyrzucony z ") + p.params[1];
 	temp += " przez " + p.params[0];
@@ -365,4 +391,30 @@ CBotPlugin::CBotPlugin(CBotCore* c, CBotSettings* s)
 
 CBotPlugin::~CBotPlugin()
 {
+}
+
+/****************************************************************************/
+
+CCorePlugin::CCorePlugin(CBotCore* c, CBotSettings* s)
+	: CBotPlugin(c, s)
+{
+	core -> registerCommand("rejoin", this);
+}
+
+CCorePlugin::~CCorePlugin()
+{
+}
+
+void CCorePlugin::executeCommand(QString command, QStringList, QString, QString sender)
+{
+	if(command == "rejoin")
+	{
+		core -> session() -> Join(core -> getChannel());
+		return;
+	}
+	if(command == "quit" && core -> master(sender))
+	{
+		core -> botQuit();
+		return;
+	}
 }

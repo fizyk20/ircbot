@@ -134,28 +134,45 @@ int CUsers::status(QString nick)
 
 void CUsers::aktualizuj()
 {
-	QString u_list = "";
-	QString packet = "";
-	QString host = settings->GetString("host");
-	QString path = settings->GetString("host_path");
-	
-	int i;
-	for(i=0; i<users.size(); i++)
-		if(users[i].present) u_list += users[i].nick + "%20";
-		
-	u_list = u_list.mid(0,u_list.length()-3);
-	
-	packet = "POST " + path + "/userlist.php HTTP/1.1\r\n";
-	packet += "Host: " + host + "\r\n";
-	
-	QString len = QString::number(u_list.length()+6);
+	if(settings -> GetBool("user_update_file"))
+	{
+		QString fileName = settings -> GetString("users_file");
+		QFile file(fileName);
+		file.open(QIODevice::WriteOnly | QIODevice::Text);
 
-	packet += "Content-Length: " + len + "\r\n";
-	packet += "Content-Type: application/x-www-form-urlencoded\r\n\r\n";
-	packet += "ulist=" + u_list + "\r\n\r\n";
+		QTextStream out(&file);
+		out << presentUsers() << "\n";
+		int i;
+		for(i=0; i<users.size(); i++)
+			if(users[i].present) out << users[i].nick + "\n";
+
+		file.close();
+	}
+	else
+	{
+		QString u_list = "";
+		QString packet = "";
+		QString host = settings->GetString("host");
+		QString path = settings->GetString("host_path");
+
+		int i;
+		for(i=0; i<users.size(); i++)
+			if(users[i].present) u_list += users[i].nick + "%20";
+
+		u_list = u_list.mid(0,u_list.length()-3);
+
+		packet = "POST " + path + "/userlist.php HTTP/1.1\r\n";
+		packet += "Host: " + host + "\r\n";
+
+		QString len = QString::number(u_list.length()+6);
 	
-	CUsersSocket sock;
-	sock.updateList(host, packet);
+		packet += "Content-Length: " + len + "\r\n";
+		packet += "Content-Type: application/x-www-form-urlencoded\r\n\r\n";
+		packet += "ulist=" + u_list + "\r\n\r\n";
+		
+		CUsersSocket sock;
+		sock.updateList(host, packet);
+	}
 }
 
 void CUsers::Save()
@@ -429,22 +446,37 @@ void CUsers::evWhoIsUser(IrcParams p)
 void CUsers::botDisconnected()
 {
 	int i;
-	QString host = settings->GetString("host");
-	QString path = settings->GetString("host_path");
 	for(i=0; i<users.size(); i++)
 	{
 		if(users[i].present)
 			users[i].seen = date();
 	}
 	Save();
-	
-	QString packet = "";
-	packet = "POST " + path + "/userlist.php HTTP/1.1\r\n";
-	packet += "Host: " + host + "\r\n";
-	packet += "Content-Length: 12\r\n";
-	packet += "Content-Type: application/x-www-form-urlencoded\r\n\r\n";
-	packet += "ulist=no_bot\r\n\r\n";
-	
-	CUsersSocket sock;
-	sock.updateList(host, packet);
+
+	if(settings -> GetBool("user_update_file"))
+	{
+		QString fileName = settings -> GetString("users_file");
+		QFile file(fileName);
+		file.open(QIODevice::WriteOnly | QIODevice::Text);
+
+		QTextStream out(&file);
+		out << "none";
+
+		file.close();
+	}
+	else
+	{
+		QString host = settings->GetString("host");
+		QString path = settings->GetString("host_path");
+
+		QString packet = "";
+		packet = "POST " + path + "/userlist.php HTTP/1.1\r\n";
+		packet += "Host: " + host + "\r\n";
+		packet += "Content-Length: 12\r\n";
+		packet += "Content-Type: application/x-www-form-urlencoded\r\n\r\n";
+		packet += "ulist=no_bot\r\n\r\n";
+
+		CUsersSocket sock;
+		sock.updateList(host, packet);
+	}
 }

@@ -26,6 +26,7 @@ public:
 	
 	QString getNick();
 	QString getChannel();
+	void botQuit();
 
 	void handleRawEvent(const char* event, const CBotPlugin* handler, const char* slot);
 	void handleEvent(const char* event, const CBotPlugin* handler, const char* slot);
@@ -71,6 +72,7 @@ public slots:
 signals:
 	void ircMessage(QString sender, QString addr, QString msg);
 	void ircNickChange(QString oldNick, QString newNick);
+	void quit();
 };
 
 class CBotPlugin : public QObject
@@ -84,6 +86,16 @@ public:
 	virtual ~CBotPlugin();
 	
 	virtual void executeCommand(QString command, QStringList params, QString addr, QString sender) = 0;
+};
+
+class CCorePlugin : public CBotPlugin
+{
+Q_OBJECT
+public:
+	CCorePlugin(CBotCore*, CBotSettings*);
+	~CCorePlugin();
+
+	void executeCommand(QString, QStringList, QString, QString);
 };
 
 #endif
