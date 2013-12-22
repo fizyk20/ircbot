@@ -23,6 +23,7 @@ CPermissions::CPermissions(CBotCore* c, CBotSettings* s)
 {
 	load();
 
+	core -> registerPluginId(this, "permissions");
 	core -> registerCommand("perm", this);
 	registerCommand("perm", true);
 	registerCommand("perm:show", true);
