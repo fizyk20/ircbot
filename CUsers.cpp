@@ -42,6 +42,8 @@ CUsers::CUsers(CBotCore* c, CBotSettings* s)
 	core->registerPluginId(this, "users");
 	
 	Load();
+
+	nickBeingChecked = "";
 }
 
 CUsers::~CUsers()
@@ -82,7 +84,8 @@ void CUsers::executeCommand(QString command, QStringList params, QString addr, Q
 
 	if(command == "auth")
 	{
-		core -> sendMsg(settings -> GetString("users_authserv"), "info " + sender);
+		nickBeingChecked = sender;
+		core -> sendMsg(settings -> GetString("users_authserv"), "info =" + sender);
 	}
 }
 
@@ -468,7 +471,7 @@ void CUsers::packNotice(IrcParams p)
 	if(p.params[2].contains(registered))
 	{
 		//nick is registered
-		QString nick = registered.cap(1);
+		QString nick = nickBeingChecked;
 		QString account = registered.cap(2);
 		this->registered(nick, account);
 		core -> sendMsg(nick, "OK, zarejestrowany jako " + account + ".");
@@ -476,7 +479,7 @@ void CUsers::packNotice(IrcParams p)
 	if(p.params[2].contains(unregistered))
 	{
 		//nick is not registered
-		QString nick = unregistered.cap(1);
+		QString nick = nickBeingChecked;
 		this->not_registered(nick);
 		core -> sendMsg(nick, "BŁĄD - niezarejestrowany.");
 	}

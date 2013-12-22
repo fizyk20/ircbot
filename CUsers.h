@@ -44,6 +44,8 @@ Q_OBJECT
 	void Save();
 	
 	void Join(QString nick, QString mask);
+
+	QString nickBeingChecked;
 	void registered(QString nick, QString account);
 	void not_registered(QString nick);
 public:
