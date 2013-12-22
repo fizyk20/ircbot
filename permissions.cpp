@@ -6,6 +6,7 @@
  */
 
 #include "permissions.h"
+#include "CUsers.h"
 
 Command* Command::operator[](QString command)
 {
@@ -39,16 +40,15 @@ void CPermissions::save()
 
 	QTextStream fout(&file);
 
-	int i;
-	for(i=0; i < main -> subcommands.size(); i++)
-		write(fout, main -> subcommands[i]);
+	write(fout, main);
 
 	file.close();
 }
 
 void CPermissions::write(QTextStream& fout, Command* command)
 {
-	fout << command->full_path << "\t" << (command->default_allow ? "true" : "false") << "\t" << command->exceptions.join("|") << endl;
+	if(command -> full_path != "")
+		fout << command->full_path << "\t" << (command->default_allow ? "true" : "false") << "\t" << command->exceptions.join("|") << endl;
 	int i;
 	for(i=0; i < command->subcommands.size(); i++)
 		write(fout, command->subcommands[i]);
@@ -147,10 +147,15 @@ void CPermissions::registerCommand(QString path, bool default_allow)
 
 bool CPermissions::checkCommand(Command* command, QString nick)
 {
+	QString name = "nick:" + nick;
+	CUsers* users = (CUsers*) core -> getPlugin("users");
+	QString account = users -> getAccount(nick);
+	if(account != "") name = "account:" + account;
+
 	bool result = command->default_allow;
 	int i;
 	for(i = 0; i < command->exceptions.size(); i++)
-		if(nick == command->exceptions[i]) return !result;
+		if(name == command->exceptions[i]) return !result;
 	return result;
 }
 
@@ -158,9 +163,14 @@ bool CPermissions::checkPrivilege(QString nick, QString command, QStringList par
 {
 	Command* current = main;
 
+	QStringList commands;
+	commands << command;
+	commands.append(params);
+
 	while(checkCommand(current, nick))
 	{
-		current = (*current)[params.takeFirst()];
+		if(commands.size() == 0) return true;
+		current = (*current)[commands.takeFirst()];
 		if(!current) return true;
 	}
 
@@ -169,5 +179,9 @@ bool CPermissions::checkPrivilege(QString nick, QString command, QStringList par
 
 void CPermissions::executeCommand(QString command, QStringList params, QString addr, QString sender)
 {
-
+	if(!checkPrivilege(sender, command, params))
+	{
+		core -> sendMsg(addr, "Nie masz uprawnień do tego polecenia.");
+		return;
+	}
 }
