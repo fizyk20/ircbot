@@ -184,7 +184,7 @@ bool CPermissions::checkPrivilege(QString nick, QString command, QStringList par
 	return false;
 }
 
-void CPermissions::executeCommand(QString command, QStringList params, QString addr, QString sender)
+void CPermissions::executeCommand(QString, QStringList params, QString addr, QString)
 {
 	if(params.size() == 0)
 	{
