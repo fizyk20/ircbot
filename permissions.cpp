@@ -148,15 +148,16 @@ void CPermissions::registerCommand(QString path, bool default_allow)
 
 bool CPermissions::checkCommand(Command* command, QString nick)
 {
-	QString name = "nick:" + nick;
+	QStringList names;
+	names << "nick:" + nick;
 	CUsers* users = (CUsers*) core -> getPlugin("users");
 	QString account = users -> getAccount(nick);
-	if(account != "") name = "account:" + account;
+	if(account != "") names << "account:" + account;
 
 	bool result = command->default_allow;
 	int i;
-	for(i = 0; i < command->exceptions.size(); i++)
-		if(name == command->exceptions[i]) return !result;
+	for(i = 0; i < names.size(); i++)
+		if(command->exceptions.contains(names[i])) return !result;
 	return result;
 }
 
