@@ -142,6 +142,7 @@ void CPermissions::registerCommand(QString path, bool default_allow)
 		new_c -> full_path = path;
 		new_c -> default_allow = default_allow;
 		current->subcommands.push_back(new_c);
+		save();
 	}
 }
 
@@ -184,4 +185,6 @@ void CPermissions::executeCommand(QString command, QStringList params, QString a
 		core -> sendMsg(addr, "Nie masz uprawnień do tego polecenia.");
 		return;
 	}
+
+	save();
 }
