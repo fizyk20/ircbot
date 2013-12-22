@@ -1,6 +1,7 @@
 #include "CBotCore.h"
 #include <QDateTime>
 #include <QRegExp>
+#include "permissions.h"
 #include "CUsers.h"
 #include "roll.h"
 #include "randomchat.h"
@@ -54,6 +55,7 @@ CBotCore::CBotCore(QApplication* app)
 	//load "plugins"
 	plugins.clear();
 	plugins.push_back(new CCorePlugin(this, settings));
+	plugins.push_back(new CPermissions(this, settings));
 	plugins.push_back(new CUsers(this, settings));
 	plugins.push_back(new CRoll(this, settings));
 	plugins.push_back(new CRandomChat(this, settings));
