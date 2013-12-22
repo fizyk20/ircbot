@@ -82,7 +82,7 @@ void CUsers::executeCommand(QString command, QStringList params, QString addr, Q
 
 	if(command == "auth")
 	{
-		core -> sendMsg("nickserv", "info " + sender);
+		core -> sendMsg(settings -> GetString("users_authserv"), "info " + sender);
 	}
 }
 
@@ -465,7 +465,7 @@ void CUsers::packNotice(IrcParams p)
 	QRegExp registered(settings -> GetString("users_regex_registered"));
 	QRegExp unregistered(settings -> GetString("users_regex_unregistered"));
 
-	if(registered.exactMatch(p.params[2]))
+	if(p.params[2].contains(registered))
 	{
 		//nick is registered
 		QString nick = registered.cap(1);
@@ -473,7 +473,7 @@ void CUsers::packNotice(IrcParams p)
 		this->registered(nick, account);
 		core -> sendMsg(nick, "OK, zarejestrowany jako " + account + ".");
 	}
-	if(unregistered.exactMatch(p.params[2]))
+	if(p.params[2].contains(unregistered))
 	{
 		//nick is not registered
 		QString nick = unregistered.cap(1);
