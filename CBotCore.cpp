@@ -114,6 +114,9 @@ CBotPlugin* CBotCore::getPlugin(QString id)
 
 bool CBotCore::master(QString nick)
 {
+	CUsers* users = (CUsers*)getPlugin("users");
+	QString account = users -> getAccount(nick);
+	if(account == "") return false;
 	bool b = false;
 	QFile f("masters.ini");
 	f.open(QIODevice::ReadOnly | QIODevice::Text);
@@ -123,7 +126,7 @@ bool CBotCore::master(QString nick)
 	while(!fin.atEnd())
 	{
 		QString line = fin.readLine();
-		if(line == nick) 
+		if(line == account)
 		{
 			b = true;
 			break;
