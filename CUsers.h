@@ -16,6 +16,7 @@ struct User
 	QString name;
 	QString mask;
 	QString seen;
+	QString account;	//nickserv account
 };
 
 class CUsersSocket : public QTcpSocket
@@ -52,8 +53,10 @@ public:
 	int status(QString);
 	int Find(QString nick);
 	User operator[](int i);
+	User operator[](QString nick);
 	
 	int presentUsers();
+	QString getAccount(QString nick);
 
 public slots:
 	void packMode(IrcParams);

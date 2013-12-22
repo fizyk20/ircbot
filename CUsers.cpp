@@ -77,6 +77,11 @@ void CUsers::executeCommand(QString command, QStringList params, QString addr, Q
 		
 		core -> sendMsgChannel(msg);
 	}
+
+	if(command == "auth")
+	{
+
+	}
 }
 
 QString CUsers::date()
@@ -233,6 +238,15 @@ User CUsers::operator[](int i)
 	return users[i];
 }
 
+User CUsers::operator[](QString nick)
+{
+	User result_null;
+	result_null.nick = "";
+	int i = Find(nick);
+	if(i<0) return result_null;
+	return users[i];
+}
+
 int CUsers::presentUsers()
 {
 	int i, result;
@@ -241,6 +255,13 @@ int CUsers::presentUsers()
 		if(users[i].present) result++;
 	result--;	// take the bot into account
 	return result;
+}
+
+QString CUsers::getAccount(QString nick)
+{
+	int i = Find(nick);
+	if(i<0) return "";
+	return users[i].account;
 }
 
 void CUsers::packMode(IrcParams par)
