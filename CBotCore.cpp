@@ -243,6 +243,13 @@ void CBotCore::packPrivMsg(IrcParams p)
 		QStringList params;
 		if(i >= 0)
 			params = p.params[2].mid(i+1).split(" ",QString::SkipEmptyParts);
+
+		CPermissions* perm = (CPermissions*)getPlugin("permissions");
+		if(!perm -> checkPrivilege(p.params[0], command, params))
+		{
+			sendMsg(addr, "Nie masz uprawnień do tego polecenia.");
+			return;
+		}
 		commands[command]->executeCommand(command, params, addr, p.params[0]);
 	}
 	else

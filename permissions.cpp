@@ -23,8 +23,13 @@ CPermissions::CPermissions(CBotCore* c, CBotSettings* s)
 {
 	load();
 
+	core -> registerPluginId(this, "permissions");
 	core -> registerCommand("perm", this);
-	registerCommand("perm", false);
+	registerCommand("perm", true);
+	registerCommand("perm:show", true);
+	registerCommand("perm:default", false);
+	registerCommand("perm:add_except", false);
+	registerCommand("perm:del_except", false);
 }
 
 CPermissions::~CPermissions()
@@ -142,20 +147,22 @@ void CPermissions::registerCommand(QString path, bool default_allow)
 		new_c -> full_path = path;
 		new_c -> default_allow = default_allow;
 		current->subcommands.push_back(new_c);
+		save();
 	}
 }
 
 bool CPermissions::checkCommand(Command* command, QString nick)
 {
-	QString name = "nick:" + nick;
+	QStringList names;
+	names << "nick:" + nick;
 	CUsers* users = (CUsers*) core -> getPlugin("users");
 	QString account = users -> getAccount(nick);
-	if(account != "") name = "account:" + account;
+	if(account != "") names << "account:" + account;
 
 	bool result = command->default_allow;
 	int i;
-	for(i = 0; i < command->exceptions.size(); i++)
-		if(name == command->exceptions[i]) return !result;
+	for(i = 0; i < names.size(); i++)
+		if(command->exceptions.contains(names[i])) return !result;
 	return result;
 }
 
@@ -177,11 +184,97 @@ bool CPermissions::checkPrivilege(QString nick, QString command, QStringList par
 	return false;
 }
 
-void CPermissions::executeCommand(QString command, QStringList params, QString addr, QString sender)
+void CPermissions::executeCommand(QString, QStringList params, QString addr, QString)
 {
-	if(!checkPrivilege(sender, command, params))
+	if(params.size() == 0)
 	{
-		core -> sendMsg(addr, "Nie masz uprawnień do tego polecenia.");
+		core -> sendMsg(addr, "Za mało parametrów!");
 		return;
 	}
+
+	if(params[0] == "default")
+	{
+		if(params.size() < 3)
+		{
+			core -> sendMsg(addr, "Wymagane parametry: komenda użytkownik");
+			return;
+		}
+
+		Command* c = (*this)[params[1]];
+		if(!c)
+		{
+			core -> sendMsg(addr, "Niepoprawna komenda: " + params[1]);
+			return;
+		}
+
+		c -> default_allow = (params[2] == "true" || params[2] == "allow");
+		core -> sendMsg(addr, "Zmieniono domyślne uprawnienie.");
+
+		return;
+	}
+
+	if(params[0] == "add_except")
+	{
+		if(params.size() < 3)
+		{
+			core -> sendMsg(addr, "Wymagane parametry: komenda użytkownik");
+			return;
+		}
+
+		Command* c = (*this)[params[1]];
+		if(!c)
+		{
+			core -> sendMsg(addr, "Niepoprawna komenda: " + params[1]);
+			return;
+		}
+
+		c -> exceptions.push_back(params[2]);
+		core -> sendMsg(addr, "Dodano wyjątek.");
+
+		return;
+	}
+
+	if(params[0] == "del_except")
+	{
+		if(params.size() < 3)
+		{
+			core -> sendMsg(addr, "Wymagane parametry: komenda użytkownik");
+			return;
+		}
+
+		Command* c = (*this)[params[1]];
+		if(!c)
+		{
+			core -> sendMsg(addr, "Niepoprawna komenda: " + params[1]);
+			return;
+		}
+
+		c -> exceptions.removeOne(params[2]);
+		core -> sendMsg(addr, "Usunięto wyjątek.");
+
+		return;
+	}
+
+	if(params[0] == "show")
+	{
+		if(params.size() < 2)
+		{
+			core -> sendMsg(addr, "Wymagane parametry: komenda");
+			return;
+		}
+
+		Command* c = (*this)[params[1]];
+		if(!c)
+		{
+			core -> sendMsg(addr, "Niepoprawna komenda: " + params[1]);
+			return;
+		}
+
+		core -> sendMsg(addr, "Domyślnie: " + QString(c->default_allow ? "zezwól" : "zabroń"));
+		core -> sendMsg(addr, "Wyjątki: " + c->exceptions.join(", "));
+
+		return;
+	}
+
+	save();
 }

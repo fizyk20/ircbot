@@ -2,6 +2,7 @@
 #include <QDateTime>
 #include <QFile>
 #include <stdlib.h>
+#include "permissions.h"
 
 Slowo::Slowo(QString s)
 {
@@ -83,6 +84,11 @@ CRandomChat::CRandomChat(CBotCore* c, CBotSettings* s)
 	connect(&tAutosave, SIGNAL(timeout()), this, SLOT(autosave()));
 	tAutosave.setSingleShot(false);
 	tAutosave.start(settings->GetInt("random_autosaveDelay"));
+
+	CPermissions* perm = (CPermissions*)core->getPlugin("permissions");
+	perm -> registerCommand("random", false);
+	perm -> registerCommand("gadaj", true);
+	perm -> registerCommand("stfu", true);
 }
 
 void CRandomChat::wczytaj()
@@ -244,11 +250,11 @@ void CRandomChat::autosave()
 	modified = false;
 }
 
-void CRandomChat::executeCommand(QString command, QStringList params, QString addr, QString sender)
+void CRandomChat::executeCommand(QString command, QStringList params, QString addr, QString)
 {
 	if(command == "stfu")
 		stfu();
-	if(command == "random" && core->master(sender))
+	if(command == "random")
 	{
 		if(params[0] == "enable")
 		{
