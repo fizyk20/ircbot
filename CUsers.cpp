@@ -31,15 +31,19 @@ CUsers::CUsers(CBotCore* c, CBotSettings* s)
 	core->handleRawEvent(SIGNAL(packQuit(IrcParams)), this, SLOT(packQuit(IrcParams)));
 	core->handleRawEvent(SIGNAL(packKick(IrcParams)), this, SLOT(packKick(IrcParams)));
 	core->handleRawEvent(SIGNAL(packPrivMsg(IrcParams)), this, SLOT(packPrivMsg(IrcParams)));
+	core->handleRawEvent(SIGNAL(packNotice(IrcParams)), this, SLOT(packNotice(IrcParams)));
 	core->handleRawEvent(SIGNAL(evNameReply(IrcParams)), this, SLOT(evNameReply(IrcParams)));
 	core->handleRawEvent(SIGNAL(evWhoIsUser(IrcParams)), this, SLOT(evWhoIsUser(IrcParams)));
 	core->handleRawEvent(SIGNAL(disconnected()), this, SLOT(botDisconnected()));
 	core->registerCommand("seen", this);
 	core->registerCommand("wakeup", this);
+	core->registerCommand("auth", this);
 	
 	core->registerPluginId(this, "users");
 	
 	Load();
+
+	nickBeingChecked = "";
 }
 
 CUsers::~CUsers()
@@ -47,7 +51,7 @@ CUsers::~CUsers()
 	botDisconnected();
 }
 
-void CUsers::executeCommand(QString command, QStringList params, QString addr, QString)
+void CUsers::executeCommand(QString command, QStringList params, QString addr, QString sender)
 {
 	if(command == "seen")
 	{
@@ -76,6 +80,12 @@ void CUsers::executeCommand(QString command, QStringList params, QString addr, Q
 		msg = msg.left(msg.length()-2) + "!";
 		
 		core -> sendMsgChannel(msg);
+	}
+
+	if(command == "auth")
+	{
+		nickBeingChecked = sender;
+		core -> sendMsg(settings -> GetString("users_authserv"), "info =" + sender);
 	}
 }
 
@@ -233,6 +243,15 @@ User CUsers::operator[](int i)
 	return users[i];
 }
 
+User CUsers::operator[](QString nick)
+{
+	User result_null;
+	result_null.nick = "";
+	int i = Find(nick);
+	if(i<0) return result_null;
+	return users[i];
+}
+
 int CUsers::presentUsers()
 {
 	int i, result;
@@ -241,6 +260,13 @@ int CUsers::presentUsers()
 		if(users[i].present) result++;
 	result--;	// take the bot into account
 	return result;
+}
+
+QString CUsers::getAccount(QString nick)
+{
+	int i = Find(nick);
+	if(i<0) return "";
+	return users[i].account;
 }
 
 void CUsers::packMode(IrcParams par)
@@ -369,6 +395,7 @@ void CUsers::packJoin(IrcParams p)
 	QString mask = p.mask;
 	
 	Join(nick, mask);
+	not_registered(nick);
 	
 	aktualizuj();
 }
@@ -418,6 +445,44 @@ void CUsers::packPrivMsg(IrcParams p)
 		users[n].mask = p.mask.mid(iAt+1);
 	}
 	users[n].present = true;
+}
+
+void CUsers::registered(QString nick, QString account)
+{
+	int i = Find(nick);
+	if(i < 0) return;
+	users[i].account = account;
+}
+
+void CUsers::not_registered(QString nick)
+{
+	int i = Find(nick);
+	if(i < 0) return;
+	users[i].account = "";
+}
+
+void CUsers::packNotice(IrcParams p)
+{
+	if(p.params[0].toLower() != settings -> GetString("users_authserv").toLower()) return;
+
+	QRegExp registered(settings -> GetString("users_regex_registered"));
+	QRegExp unregistered(settings -> GetString("users_regex_unregistered"));
+
+	if(p.params[2].contains(registered))
+	{
+		//nick is registered
+		QString nick = nickBeingChecked;
+		QString account = registered.cap(2);
+		this->registered(nick, account);
+		core -> sendMsg(nick, "OK, zarejestrowany jako " + account + ".");
+	}
+	if(p.params[2].contains(unregistered))
+	{
+		//nick is not registered
+		QString nick = nickBeingChecked;
+		this->not_registered(nick);
+		core -> sendMsg(nick, "BŁĄD - niezarejestrowany.");
+	}
 }
 
 void CUsers::evNameReply(IrcParams p)

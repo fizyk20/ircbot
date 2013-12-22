@@ -1,6 +1,7 @@
 #include "CBotCore.h"
 #include <QDateTime>
 #include <QRegExp>
+#include "permissions.h"
 #include "CUsers.h"
 #include "roll.h"
 #include "randomchat.h"
@@ -54,6 +55,7 @@ CBotCore::CBotCore(QCoreApplication* app)
 	//load "plugins"
 	plugins.clear();
 	plugins.push_back(new CCorePlugin(this, settings));
+	plugins.push_back(new CPermissions(this, settings));
 	plugins.push_back(new CUsers(this, settings));
 	plugins.push_back(new CRoll(this, settings));
 	plugins.push_back(new CRandomChat(this, settings));
@@ -116,6 +118,9 @@ CBotPlugin* CBotCore::getPlugin(QString id)
 
 bool CBotCore::master(QString nick)
 {
+	CUsers* users = (CUsers*)getPlugin("users");
+	QString account = users -> getAccount(nick);
+	if(account == "") return false;
 	bool b = false;
 	QFile f("masters.ini");
 	f.open(QIODevice::ReadOnly | QIODevice::Text);
@@ -125,7 +130,7 @@ bool CBotCore::master(QString nick)
 	while(!fin.atEnd())
 	{
 		QString line = fin.readLine();
-		if(line == nick) 
+		if(line == account)
 		{
 			b = true;
 			break;

@@ -16,6 +16,7 @@ struct User
 	QString name;
 	QString mask;
 	QString seen;
+	QString account;	//nickserv account
 };
 
 class CUsersSocket : public QTcpSocket
@@ -43,6 +44,10 @@ Q_OBJECT
 	void Save();
 	
 	void Join(QString nick, QString mask);
+
+	QString nickBeingChecked;
+	void registered(QString nick, QString account);
+	void not_registered(QString nick);
 public:
 	CUsers(CBotCore*, CBotSettings*);
 	~CUsers();
@@ -52,8 +57,10 @@ public:
 	int status(QString);
 	int Find(QString nick);
 	User operator[](int i);
+	User operator[](QString nick);
 	
 	int presentUsers();
+	QString getAccount(QString nick);
 
 public slots:
 	void packMode(IrcParams);
@@ -63,6 +70,7 @@ public slots:
 	void packQuit(IrcParams);
 	void packKick(IrcParams);
 	void packPrivMsg(IrcParams);
+	void packNotice(IrcParams);
 	void evNameReply(IrcParams);
 	void evWhoIsUser(IrcParams);
 	void botDisconnected();
