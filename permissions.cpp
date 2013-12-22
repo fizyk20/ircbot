@@ -186,12 +186,6 @@ bool CPermissions::checkPrivilege(QString nick, QString command, QStringList par
 
 void CPermissions::executeCommand(QString command, QStringList params, QString addr, QString sender)
 {
-	if(!checkPrivilege(sender, command, params))
-	{
-		core -> sendMsg(addr, "Nie masz uprawnień do tego polecenia.");
-		return;
-	}
-
 	if(params.size() == 0)
 	{
 		core -> sendMsg(addr, "Za mało parametrów!");
