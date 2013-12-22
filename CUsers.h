@@ -44,6 +44,8 @@ Q_OBJECT
 	void Save();
 	
 	void Join(QString nick, QString mask);
+	void registered(QString nick, QString account);
+	void not_registered(QString nick);
 public:
 	CUsers(CBotCore*, CBotSettings*);
 	~CUsers();
@@ -66,6 +68,7 @@ public slots:
 	void packQuit(IrcParams);
 	void packKick(IrcParams);
 	void packPrivMsg(IrcParams);
+	void packNotice(IrcParams);
 	void evNameReply(IrcParams);
 	void evWhoIsUser(IrcParams);
 	void botDisconnected();
