@@ -60,7 +60,7 @@ void CPermissions::save()
 	file.close();
 
 	QFile file2("perm_groups.dat");
-	if(!file.open(QIODevice::ReadWrite | QIODevice::Text))
+	if(!file2.open(QIODevice::ReadWrite | QIODevice::Text))
 		return;
 
 	QTextStream fout2(&file2);
