@@ -30,7 +30,7 @@ void CWzorce::load()
 	file.close();
 }
 
-void CWzorce::executeCommand(QString command, QStringList params, QString, QString)
+void CWzorce::executeCommand(QString, QStringList params, QString, QString)
 {
 	if(params.length() < 1) return;
 
@@ -42,7 +42,7 @@ void CWzorce::executeCommand(QString command, QStringList params, QString, QStri
 	}
 }
 
-void CWzorce::ircMessage(QString sender, QString addr, QString msg)
+void CWzorce::ircMessage(QString, QString addr, QString msg)
 {
 	QMap<QString, QString>::iterator it;
 	
