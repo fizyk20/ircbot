@@ -69,6 +69,7 @@ void CLeaveMsg::executeCommand(QString, QStringList params, QString addr, QStrin
 	QString nick = params.takeFirst();
 	QString msg = params.join(" ");
 	msgs[nick] = msg;
+	msgs[nick + ":sender"] = sender;
 	core -> sendMsg(addr, "Wiadomość zapisana.");
 }
 
@@ -76,7 +77,9 @@ void CLeaveMsg::userAuthed(QString nick, QString account)
 {
 	if(msgs.contains(account))
 	{
-		core -> sendMsg(nick, msgs[account]);
+		QString sender = msgs[account + ":sender"];
+		core -> sendMsg(nick, "Wiadomość od " + sender + ": " + msgs[account]);
 		msgs.remove(account);
+		msgs.remove(account + ":sender");
 	}
 }

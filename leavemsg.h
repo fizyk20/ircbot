@@ -13,6 +13,7 @@
 
 class CLeaveMsg : public CBotPlugin
 {
+Q_OBJECT
 	QMap<QString, QString> msgs;
 
 	void load();
