@@ -76,7 +76,7 @@ public slots:
 	void botDisconnected();
 
 signals:
-	void userAuthed(QString);
+	void userAuthed(QString, QString);
 };
 
 #endif
