@@ -8,6 +8,8 @@
 #include "permissions.h"
 #include "CUsers.h"
 
+PermGroup CPermissions::invalidGroup = { "<invalid>", QStringList() };
+
 Command* Command::operator[](QString command)
 {
 	for(int i = 0; i < subcommands.size(); i++)
@@ -48,6 +50,17 @@ void CPermissions::save()
 	write(fout, main);
 
 	file.close();
+
+	QFile file2("perm_groups.dat");
+	if(!file.open(QIODevice::ReadWrite | QIODevice::Text))
+		return;
+
+	QTextStream fout2(&file2);
+
+	for(int i = 0; i < groups.size(); i++)
+		fout2 << groups[i].name << "\t" << groups[i].members.join(",") << endl;
+
+	file2.close();
 }
 
 void CPermissions::write(QTextStream& fout, Command* command)
@@ -78,6 +91,24 @@ void CPermissions::load()
 		parent = read(fin, parent);
 
 	file.close();
+
+	QFile file2("perm_groups.dat");
+	if(!file2.open(QIODevice::ReadOnly | QIODevice::Text))
+		return;
+
+	QTextStream fin2(&file2);
+
+	while(!fin2.atEnd())
+	{
+		QString line = fin2.readLine();
+		QStringList fields = line.split("\t");
+		PermGroup g;
+		g.name = fields[0];
+		g.members = fields[1].split(",", QString::SkipEmptyParts);
+		groups.push_back(g);
+	}
+
+	file2.close();
 }
 
 Command* CPermissions::read(QTextStream& fin, Command* parent)
@@ -129,6 +160,24 @@ Command* CPermissions::operator[](QString path)
 	return current;
 }
 
+PermGroup& CPermissions::group(QString name)
+{
+	int i;
+	for(i = 0; i < groups.size(); i++)
+		if(groups[i].name == name) return groups[i];
+	return invalidGroup;
+}
+
+QStringList CPermissions::userGroups(QString name)
+{
+	int i;
+	QStringList result;
+	for(i = 0; i < groups.size(); i++)
+		if(groups[i].members.contains(name)) result << "group:" + groups[i].name;
+
+	return result;
+}
+
 void CPermissions::registerCommand(QString path, bool default_allow)
 {
 	QStringList l_path = path.split(":");
@@ -153,14 +202,21 @@ void CPermissions::registerCommand(QString path, bool default_allow)
 
 bool CPermissions::checkCommand(Command* command, QString nick)
 {
-	QStringList names;
+	QStringList names, groups;
+	int i;
+
 	names << "nick:" + nick;
 	CUsers* users = (CUsers*) core -> getPlugin("users");
 	QString account = users -> getAccount(nick);
 	if(account != "") names << "account:" + account;
 
+	for(i = 0; i < names.size(); i++)
+		groups += userGroups(names[i]);
+
+	names += groups;
+
 	bool result = command->default_allow;
-	int i;
+
 	for(i = 0; i < names.size(); i++)
 		if(command->exceptions.contains(names[i])) return !result;
 	return result;
@@ -274,6 +330,11 @@ void CPermissions::executeCommand(QString, QStringList params, QString addr, QSt
 		core -> sendMsg(addr, "Wyjątki: " + c->exceptions.join(", "));
 
 		return;
+	}
+
+	if(params[0] == "group")
+	{
+
 	}
 
 	save();

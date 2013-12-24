@@ -11,10 +11,10 @@
 #include "CBotCore.h"
 #include <QVector>
 
-struct Group
+struct PermGroup
 {
 	QString name;
-	QVector<QString> members;
+	QStringList members;
 };
 
 class Command
@@ -32,12 +32,18 @@ public:
 
 class CPermissions : public CBotPlugin
 {
+	static PermGroup invalidGroup;
+
 	Command* main;
+	QVector<PermGroup> groups;
 
 	void load();
 	void save();
 	void write(QTextStream&, Command*);
 	Command* read(QTextStream&, Command*);
+
+	PermGroup& group(QString);
+	QStringList userGroups(QString);
 
 	bool checkCommand(Command*, QString);
 public:
