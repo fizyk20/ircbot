@@ -104,7 +104,7 @@ Command* CPermissions::read(QTextStream& fin, Command* parent)
 
 	new_c -> default_allow = (fields[1] == "true");
 
-	new_c -> exceptions = fields[2].split("|");
+	new_c -> exceptions = fields[2].split("|", QString::SkipEmptyParts);
 
 	// save in tree
 	parent -> subcommands.push_back(new_c);
