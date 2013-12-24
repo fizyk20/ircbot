@@ -8,6 +8,8 @@
 #include "permissions.h"
 #include "CUsers.h"
 
+PermGroup CPermissions::invalidGroup = { "<invalid>", QStringList() };
+
 Command* Command::operator[](QString command)
 {
 	for(int i = 0; i < subcommands.size(); i++)
@@ -30,6 +32,14 @@ CPermissions::CPermissions(CBotCore* c, CBotSettings* s)
 	registerCommand("perm:default", false);
 	registerCommand("perm:add_except", false);
 	registerCommand("perm:del_except", false);
+	registerCommand("perm:group", true);
+	registerCommand("perm:group:list", true);
+	registerCommand("perm:group:show", true);
+	registerCommand("perm:group:add", false);
+	registerCommand("perm:group:del", false);
+	registerCommand("perm:group:user", false);
+	registerCommand("perm:group:user:add", false);
+	registerCommand("perm:group:user:del", false);
 }
 
 CPermissions::~CPermissions()
@@ -48,6 +58,17 @@ void CPermissions::save()
 	write(fout, main);
 
 	file.close();
+
+	QFile file2("perm_groups.dat");
+	if(!file.open(QIODevice::ReadWrite | QIODevice::Text))
+		return;
+
+	QTextStream fout2(&file2);
+
+	for(int i = 0; i < groups.size(); i++)
+		fout2 << groups[i].name << "\t" << groups[i].members.join(",") << endl;
+
+	file2.close();
 }
 
 void CPermissions::write(QTextStream& fout, Command* command)
@@ -78,6 +99,25 @@ void CPermissions::load()
 		parent = read(fin, parent);
 
 	file.close();
+
+	QFile file2("perm_groups.dat");
+	if(!file2.open(QIODevice::ReadOnly | QIODevice::Text))
+		return;
+
+	QTextStream fin2(&file2);
+
+	while(!fin2.atEnd())
+	{
+		QString line = fin2.readLine();
+		if(line == "") continue;
+		QStringList fields = line.split("\t");
+		PermGroup g;
+		g.name = fields[0];
+		g.members = fields[1].split(",", QString::SkipEmptyParts);
+		groups.push_back(g);
+	}
+
+	file2.close();
 }
 
 Command* CPermissions::read(QTextStream& fin, Command* parent)
@@ -104,7 +144,7 @@ Command* CPermissions::read(QTextStream& fin, Command* parent)
 
 	new_c -> default_allow = (fields[1] == "true");
 
-	new_c -> exceptions = fields[2].split("|");
+	new_c -> exceptions = fields[2].split("|", QString::SkipEmptyParts);
 
 	// save in tree
 	parent -> subcommands.push_back(new_c);
@@ -127,6 +167,24 @@ Command* CPermissions::operator[](QString path)
 	}
 
 	return current;
+}
+
+PermGroup& CPermissions::group(QString name)
+{
+	int i;
+	for(i = 0; i < groups.size(); i++)
+		if(groups[i].name == name) return groups[i];
+	return invalidGroup;
+}
+
+QStringList CPermissions::userGroups(QString name)
+{
+	int i;
+	QStringList result;
+	for(i = 0; i < groups.size(); i++)
+		if(groups[i].members.contains(name)) result << "group:" + groups[i].name;
+
+	return result;
 }
 
 void CPermissions::registerCommand(QString path, bool default_allow)
@@ -153,14 +211,21 @@ void CPermissions::registerCommand(QString path, bool default_allow)
 
 bool CPermissions::checkCommand(Command* command, QString nick)
 {
-	QStringList names;
+	QStringList names, groups;
+	int i;
+
 	names << "nick:" + nick;
 	CUsers* users = (CUsers*) core -> getPlugin("users");
 	QString account = users -> getAccount(nick);
 	if(account != "") names << "account:" + account;
 
+	for(i = 0; i < names.size(); i++)
+		groups += userGroups(names[i]);
+
+	names += groups;
+
 	bool result = command->default_allow;
-	int i;
+
 	for(i = 0; i < names.size(); i++)
 		if(command->exceptions.contains(names[i])) return !result;
 	return result;
@@ -194,86 +259,122 @@ void CPermissions::executeCommand(QString, QStringList params, QString addr, QSt
 
 	if(params[0] == "default")
 	{
-		if(params.size() < 3)
-		{
-			core -> sendMsg(addr, "Wymagane parametry: komenda użytkownik");
-			return;
-		}
+		if(params.size() < 3) { core -> sendMsg(addr, "Wymagane parametry: komenda domyślne_uprawnienie"); return; }
 
 		Command* c = (*this)[params[1]];
-		if(!c)
-		{
-			core -> sendMsg(addr, "Niepoprawna komenda: " + params[1]);
-			return;
-		}
+		if(!c) { core -> sendMsg(addr, "Niepoprawna komenda: " + params[1]); return; }
 
 		c -> default_allow = (params[2] == "true" || params[2] == "allow");
 		core -> sendMsg(addr, "Zmieniono domyślne uprawnienie.");
-
-		return;
 	}
 
 	if(params[0] == "add_except")
 	{
-		if(params.size() < 3)
-		{
-			core -> sendMsg(addr, "Wymagane parametry: komenda użytkownik");
-			return;
-		}
+		if(params.size() < 3) { core -> sendMsg(addr, "Wymagane parametry: komenda użytkownik/grupa"); return; }
 
 		Command* c = (*this)[params[1]];
-		if(!c)
-		{
-			core -> sendMsg(addr, "Niepoprawna komenda: " + params[1]);
-			return;
-		}
+		if(!c) { core -> sendMsg(addr, "Niepoprawna komenda: " + params[1]); return; }
 
 		c -> exceptions.push_back(params[2]);
 		core -> sendMsg(addr, "Dodano wyjątek.");
-
-		return;
 	}
 
 	if(params[0] == "del_except")
 	{
-		if(params.size() < 3)
-		{
-			core -> sendMsg(addr, "Wymagane parametry: komenda użytkownik");
-			return;
-		}
+		if(params.size() < 3) { core -> sendMsg(addr, "Wymagane parametry: komenda użytkownik/grupa"); return; }
 
 		Command* c = (*this)[params[1]];
-		if(!c)
-		{
-			core -> sendMsg(addr, "Niepoprawna komenda: " + params[1]);
-			return;
-		}
+		if(!c) { core -> sendMsg(addr, "Niepoprawna komenda: " + params[1]); return; }
 
 		c -> exceptions.removeOne(params[2]);
 		core -> sendMsg(addr, "Usunięto wyjątek.");
-
-		return;
 	}
 
 	if(params[0] == "show")
 	{
-		if(params.size() < 2)
-		{
-			core -> sendMsg(addr, "Wymagane parametry: komenda");
-			return;
-		}
+		if(params.size() < 2) { core -> sendMsg(addr, "Wymagane parametry: komenda"); return; }
 
 		Command* c = (*this)[params[1]];
-		if(!c)
-		{
-			core -> sendMsg(addr, "Niepoprawna komenda: " + params[1]);
-			return;
-		}
+		if(!c) { core -> sendMsg(addr, "Niepoprawna komenda: " + params[1]); return; }
 
 		core -> sendMsg(addr, "Domyślnie: " + QString(c->default_allow ? "zezwól" : "zabroń"));
 		core -> sendMsg(addr, "Wyjątki: " + c->exceptions.join(", "));
 
 		return;
+	}
+
+	if(params[0] == "group")
+	{
+		if(params.size() < 2) { core -> sendMsg(addr, "Wymagane parametry: add/del/show/list/user"); return; }
+
+		if(params[1] == "list")
+		{
+			int i;
+			QStringList group_names;
+			for(i = 0; i < groups.size(); i++)
+				group_names << groups[i].name;
+
+			core -> sendMsg(addr, "Grupy: " + group_names.join(", "));
+			return;
+		}
+
+		if(params[1] == "show")
+		{
+			if(params.size() < 3) { core -> sendMsg(addr, "Wymagane parametry: show grupa"); return; }
+
+			PermGroup g = group(params[2]);
+			if(g.name == "<invalid>") { core -> sendMsg(addr, "Taka grupa nie istnieje."); return; }
+
+			core -> sendMsg(addr, "Członkowie: " + g.members.join(", "));
+			return;
+		}
+
+		if(params[1] == "add")
+		{
+			if(params.size() < 3) { core -> sendMsg(addr, "Wymagane parametry: add grupa"); return; }
+
+			if(group(params[2]).name != "<invalid>") { core -> sendMsg(addr, "Taka grupa już istnieje!"); return; }
+			PermGroup g;
+			g.name = params[2];
+			groups.push_back(g);
+			core -> sendMsg(addr, "Dodano grupę.");
+		}
+
+		if(params[1] == "del")
+		{
+			if(params.size() < 3) { core -> sendMsg(addr, "Wymagane parametry: del grupa"); return; }
+
+			PermGroup g = group(params[2]);
+			if(g.name == "<invalid>") { core -> sendMsg(addr, "Taka grupa nie istnieje."); return; }
+
+			for(int i = 0; i < groups.size(); i++)
+				if(groups[i].name == params[2])
+				{
+					groups.remove(i);
+					break;
+				}
+
+			core -> sendMsg(addr, "Usunięto grupę.");
+		}
+
+		if(params[1] == "user")
+		{
+			if(params.size() < 5) { core -> sendMsg(addr, "Wymagane parametry: user add/del grupa użytkownik"); return; }
+			if(group(params[3]).name == "<invalid>") { core -> sendMsg(addr, "Taka grupa nie istnieje."); return; }
+
+			if(params[2] == "add")
+			{
+				group(params[3]).members << params[4];
+				core -> sendMsg(addr, "Dodano użytkownika do grupy.");
+			}
+
+			if(params[2] == "del")
+			{
+				if(!group(params[3]).members.contains(params[4])) { core -> sendMsg(addr, "Grupa nie zawiera takiego użytkownika."); return; }
+				group(params[3]).members.removeOne(params[4]);
+				core -> sendMsg(addr, "Usunięto użytkownika z grupy.");
+			}
+		}
 	}
 
 	save();
