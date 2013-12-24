@@ -11,6 +11,7 @@
 #include "badwords.h"
 #include "antiflood.h"
 #include "CKickBan.h"
+#include "leavemsg.h"
 
 CBotCore::CBotCore(QCoreApplication* app)
 {
@@ -65,6 +66,7 @@ CBotCore::CBotCore(QCoreApplication* app)
 	plugins.push_back(new Badwords(this, settings));
 	plugins.push_back(new AntiFlood(this, settings));
 	plugins.push_back(new CKickBan(this, settings));
+	plugins.push_back(new CLeaveMsg(this, settings));
 
 	wnd -> clickedConnect();
 }

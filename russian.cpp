@@ -24,7 +24,7 @@ CRussian::~CRussian()
 	}
 }
 
-void CRussian::executeCommand(QString command, QStringList params, QString addr, QString sender)
+void CRussian::executeCommand(QString, QStringList params, QString, QString sender)
 {
 	if(params.length() > 0 && core->master(sender))
 	{

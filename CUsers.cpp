@@ -475,6 +475,7 @@ void CUsers::packNotice(IrcParams p)
 		QString account = registered.cap(2);
 		this->registered(nick, account);
 		core -> sendMsg(nick, "OK, zarejestrowany jako " + account + ".");
+		emit userAuthed(nick, account);
 	}
 	if(p.params[2].contains(unregistered))
 	{

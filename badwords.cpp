@@ -30,7 +30,7 @@ void Badwords::load()
 	file.close();
 }
 
-void Badwords::executeCommand(QString command, QStringList params, QString addr, QString sender)
+void Badwords::executeCommand(QString, QStringList params, QString, QString sender)
 {
 	if(params.length() < 1) return;
 	if(!core -> master(sender)) return;
@@ -65,7 +65,7 @@ void Badwords::executeCommand(QString command, QStringList params, QString addr,
 	}
 }
 
-void Badwords::ircMessage(QString sender, QString addr, QString msg)
+void Badwords::ircMessage(QString sender, QString, QString msg)
 {
 	CUsers* users = (CUsers*) core -> getPlugin("users");
 	if(users == NULL) return;

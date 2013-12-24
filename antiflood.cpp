@@ -20,7 +20,7 @@ int AntiFlood::Find(QString user)
 	return -1;
 }
 
-void AntiFlood::executeCommand(QString command, QStringList params, QString addr, QString sender)
+void AntiFlood::executeCommand(QString, QStringList params, QString addr, QString sender)
 {
 	if(! core -> master(sender)) return;
 	if(params.length() < 1) return;
@@ -46,7 +46,7 @@ void AntiFlood::executeCommand(QString command, QStringList params, QString addr
 	}
 }
 
-void AntiFlood::ircMessage(QString sender, QString ret_addr, QString msg)
+void AntiFlood::ircMessage(QString sender, QString, QString)
 {
 	CUsers* users = (CUsers*) core -> getPlugin("users");
 	if(settings -> GetBool("enabled_antiflood"))
