@@ -22,7 +22,8 @@ HEADERS += CBotCore.h \
            badwords.h \
            antiflood.h \
            CKickBan.h \
-           permissions.h
+           permissions.h \
+           leavemsg.h
 SOURCES += CBotCore.cpp \
            CBotSettings.cpp \
            CEightball.cpp \
@@ -37,4 +38,5 @@ SOURCES += CBotCore.cpp \
            badwords.cpp \
            antiflood.cpp \
            CKickBan.cpp \
-           permissions.cpp
+           permissions.cpp \
+           leavemsg.cpp
