@@ -37,6 +37,7 @@ CPermissions::CPermissions(CBotCore* c, CBotSettings* s)
 	registerCommand("perm:group:show", true);
 	registerCommand("perm:group:add", false);
 	registerCommand("perm:group:del", false);
+	registerCommand("perm:group:user", false);
 	registerCommand("perm:group:user:add", false);
 	registerCommand("perm:group:user:del", false);
 }
@@ -108,6 +109,7 @@ void CPermissions::load()
 	while(!fin2.atEnd())
 	{
 		QString line = fin2.readLine();
+		if(line == "") continue;
 		QStringList fields = line.split("\t");
 		PermGroup g;
 		g.name = fields[0];
