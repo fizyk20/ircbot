@@ -74,6 +74,9 @@ public slots:
 	void evNameReply(IrcParams);
 	void evWhoIsUser(IrcParams);
 	void botDisconnected();
+
+signals:
+	void userAuthed(QString);
 };
 
 #endif
