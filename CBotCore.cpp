@@ -277,7 +277,7 @@ void CBotCore::packError(QString txt)
 
 void CBotCore::packJoin(IrcParams p)
 {
-	Log(p.params[0] + tr(" dołączył do ") + p.params[1]);
+	Log(p.params[0] + " (" + p.mask + tr(") dołączył do ") + p.params[1]);
 }
 
 void CBotCore::packPart(IrcParams p)
@@ -297,7 +297,7 @@ void CBotCore::packNick(IrcParams p)
 void CBotCore::packQuit(IrcParams p)
 {
 	QString temp = p.params[0];
-	temp += tr(" wyszedł");
+	temp += " (" + p.mask + tr(") wyszedł");
 	if(p.params.size()>1) temp += " (" + p.params[1] + ")";
 	Log(temp);
 }
