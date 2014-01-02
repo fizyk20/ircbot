@@ -370,16 +370,15 @@ void CUsers::Join(QString nick, QString mask)
 	User u;
 
 	u.nick = remove_prefix(nick);
-	int iExcl = mask.indexOf('!');
 	int iAt = mask.indexOf('@');
-	if(iExcl == -1 || iAt == -1)
+	if(iAt == -1)
 	{
 		u.name = "";
 		u.mask = mask;
 	}
 	else
 	{
-		u.name = mask.mid(iExcl+1, iAt-iExcl-1);
+		u.name = mask.mid(0, iAt);
 		u.mask = mask.mid(iAt+1);
 	}
 	u.status = status(nick);

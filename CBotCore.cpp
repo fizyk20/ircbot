@@ -309,6 +309,7 @@ void CBotCore::packMode(IrcParams p)
 		if(id == -1) return;
 		User u = (*users)[id];
 		QRegExp rx(p.params[3]);
+		rx.setPatternSyntax(QRegExp::Wildcard);
 		if(rx.exactMatch(u.nick + "!" + u.name + "@" + u.mask))
 		{
 			sess -> Mode(p.params[1], "-b", p.params[3]);
