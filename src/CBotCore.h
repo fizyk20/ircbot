@@ -1,3 +1,18 @@
+/**************************************************************************************
+ *
+ *	CBotCore.h
+ *
+ *	Main header file to be included in plugins.
+ *	Short guide to writing plugins:
+ *	1. Subclass CBotPlugin
+ *	2. Register a command in the constructor
+ *	3. Overload CBotPlugin::executeCommand - it will be called when
+ *	   someone says the command
+ *	4. Use CBotPlugin::core (instance of CBotCore) to access IRC
+ *	   functions and CBotPlugin::settings to access various settings
+ *
+ **************************************************************************************/
+
 #ifndef __CBOTCORE__
 #define __CBOTCORE__
 
@@ -7,6 +22,14 @@
 #include <QApplication>
 
 class CBotPlugin;
+
+/**************************************************************************************
+ *
+ *	CBotCore
+ *
+ *	Core class. Provides access to the IRC interface to the plugins.
+ *
+ **************************************************************************************/
 
 class CBotCore : public QObject
 {
@@ -28,13 +51,17 @@ public:
 	QString getChannel();
 	void botQuit();
 
+	// methods for registering handlers
 	void handleRawEvent(const char* event, const CBotPlugin* handler, const char* slot);
 	void handleEvent(const char* event, const CBotPlugin* handler, const char* slot);
 	void registerCommand(QString command, CBotPlugin* handler);
 	
+	// plugin-plugin interface
 	void registerPluginId(CBotPlugin*, QString);
 	CBotPlugin* getPlugin(QString id);
 	
+
+	//basic IRC functions
 	bool master(QString);
 	void sendMsg(QString, QString);
 	void sendMsgChannel(QString);
@@ -75,6 +102,15 @@ signals:
 	void quit();
 };
 
+
+/**************************************************************************************
+ *
+ *	CBotPlugin
+ *
+ *	Prototype class for plugins. Subclass to write a plugin.
+ *
+ **************************************************************************************/
+
 class CBotPlugin : public QObject
 {
 Q_OBJECT
@@ -87,6 +123,15 @@ public:
 	
 	virtual void executeCommand(QString command, QStringList params, QString addr, QString sender) = 0;
 };
+
+
+/**************************************************************************************
+ *
+ *	CCorePlugin
+ *
+ *	Basic plugin responsible for handling "quit" and "rejoin" commands.
+ *
+ **************************************************************************************/
 
 class CCorePlugin : public CBotPlugin
 {
