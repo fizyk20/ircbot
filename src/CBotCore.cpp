@@ -20,12 +20,15 @@ CBotCore::CBotCore(QApplication* app)
 	
 	wnd = new CWindow;
 	
+	// Setup quitting signals
 	connect(app, SIGNAL(aboutToQuit()), this, SLOT(programEnd()));
 	connect(this, SIGNAL(quit()), app, SLOT(quit()));
 	
+	// Setup Connect/Disconnect buttons
 	connect(wnd, SIGNAL(botConnect()), this, SLOT(botConnect()));
 	connect(wnd, SIGNAL(botDisconnect()), this, SLOT(botDisconnect()));
 	
+	// Setup IRC signal handlers
 	connect(sess, SIGNAL(connected()), this, SLOT(connected()));
 	connect(sess, SIGNAL(disconnected()), this, SLOT(disconnected()));
 	
@@ -44,16 +47,17 @@ CBotCore::CBotCore(QApplication* app)
 	connect(sess, SIGNAL(packError(QString)), this, SLOT(packError(QString)));
 	connect(sess, SIGNAL(packOther(QString)), this, SLOT(packOther(QString)));
 	
-	serwer = settings->GetString("server");
-	kanal = settings->GetString("channel");
-	port = settings->GetString("port");
-	orig_nick = nick = settings->GetString("nick");
-	imie = settings->GetString("name");
-	email = settings->GetString("email");
+	// Read basic settings
+	serwer = settings -> GetString("server");
+	kanal = settings -> GetString("channel");
+	port = settings -> GetString("port");
+	orig_nick = nick = settings -> GetString("nick");
+	imie = settings -> GetString("name");
+	email = settings -> GetString("email");
 	
 	Log("********************* Start programu *********************");
 	
-	//load "plugins"
+	// Load plugins
 	plugins.clear();
 	plugins.push_back(new CCorePlugin(this, settings));
 	plugins.push_back(new CPermissions(this, settings));
@@ -88,26 +92,33 @@ void CBotCore::botQuit()
 	emit quit();
 }
 
+
+// Raw event (= signal from IrcSession) handler registration
 void CBotCore::handleRawEvent(const char* event, const CBotPlugin* handler, const char* slot)
 {
 	connect(sess, event, handler, slot);
 }
 
+// Processed event handler registration
 void CBotCore::handleEvent(const char* event, const CBotPlugin* handler, const char* slot)
 {
 	connect(this, event, handler, slot);
 }
 
+// Registration of a command
 void CBotCore::registerCommand(QString command, CBotPlugin* handler)
 {
 	commands[command] = handler;
 }
 
+// Registration of a plugin to be read by CBotCore::getPlugin
 void CBotCore::registerPluginId(CBotPlugin* plugin, QString id)
 {
 	idPlugins[id] = plugin;
 }
 
+
+// Plugin getter for plugin-plugin communication
 CBotPlugin* CBotCore::getPlugin(QString id)
 {
 	if(idPlugins.find(id) != idPlugins.end())
@@ -116,6 +127,7 @@ CBotPlugin* CBotCore::getPlugin(QString id)
 		return NULL;
 }
 
+// Check if a user is a master (deprecated, permissions should be used instead)
 bool CBotCore::master(QString nick)
 {
 	CUsers* users = (CUsers*)getPlugin("users");
@@ -223,6 +235,7 @@ void CBotCore::evNickInUse()
 	sess -> User(s[0], "\"" + s[1] + "\"", imie);
 }
 
+// Log the message and pass it to handlers
 void CBotCore::packPrivMsg(IrcParams p)
 {
 	QString appendix = "";
@@ -256,6 +269,7 @@ void CBotCore::packPrivMsg(IrcParams p)
 		emit ircMessage(p.params[0], addr, p.params[2]);
 }
 
+// Log notice packets, also handles auto-ghosting
 void CBotCore::packNotice(IrcParams p)
 {
 	Log("*** NOTICE " + p.params[1] + ": " + p.params[2]);
@@ -268,16 +282,19 @@ void CBotCore::packNotice(IrcParams p)
 	}
 }
 
+// Log error
 void CBotCore::packError(QString txt)
 {
 	Log("*** ERROR: " + txt);
 }
 
+// Log join and user mask
 void CBotCore::packJoin(IrcParams p)
 {
 	Log(p.params[0] + " (" + p.mask + tr(") dołączył do ") + p.params[1]);
 }
 
+// Log part message
 void CBotCore::packPart(IrcParams p)
 {
 	QString temp = p.params[0];
@@ -286,12 +303,14 @@ void CBotCore::packPart(IrcParams p)
 	Log(temp);
 }
 
+// Log nick change
 void CBotCore::packNick(IrcParams p)
 {
 	Log(p.params[0] + tr(" jest teraz znany jako ") + p.params[1]);
 	emit ircNickChange(p.params[0], p.params[1]);
 }
 
+// Log quit message
 void CBotCore::packQuit(IrcParams p)
 {
 	QString temp = p.params[0];
@@ -300,6 +319,7 @@ void CBotCore::packQuit(IrcParams p)
 	Log(temp);
 }
 
+// Log mode change, also attempt to reverse a ban on the bot
 void CBotCore::packMode(IrcParams p)
 {
 	if(p.params.size() > 3 && p.params[1] == kanal && p.params[2] == "+b")
@@ -338,6 +358,7 @@ void CBotCore::packMode(IrcParams p)
 	Log(temp);
 }
 
+// Handle kicks - autojoin if kicked
 void CBotCore::packKick(IrcParams p)
 {
 	if(p.params[2] == nick)
@@ -352,11 +373,13 @@ void CBotCore::packKick(IrcParams p)
 	Log(temp);
 }
 
+// Log that something was received
 void CBotCore::packOther(QString txt)
 {
 	Log("*** Other packet: " + txt);
 }
 
+// Log program end, clear plugins, delete objects no longer being necessary
 void CBotCore::programEnd()
 {
 	Log("********************* Koniec programu ********************\n");
@@ -371,6 +394,7 @@ void CBotCore::programEnd()
 	delete wnd;
 }
 
+// Logging function
 void CBotCore::Log(QString txt, bool file)
 {
 	QDateTime time = QDateTime::currentDateTime();
@@ -396,6 +420,7 @@ void CBotCore::Log(QString txt, bool file)
 
 /****************************************************************************/
 
+// Remember core and settings objects in properties
 CBotPlugin::CBotPlugin(CBotCore* c, CBotSettings* s)
 {
 	core = c;
@@ -408,6 +433,7 @@ CBotPlugin::~CBotPlugin()
 
 /****************************************************************************/
 
+// Core plugin - register "quit" and "rejoin"
 CCorePlugin::CCorePlugin(CBotCore* c, CBotSettings* s)
 	: CBotPlugin(c, s)
 {
@@ -419,6 +445,7 @@ CCorePlugin::~CCorePlugin()
 {
 }
 
+// Handle registered commands
 void CCorePlugin::executeCommand(QString command, QStringList, QString, QString sender)
 {
 	if(command == "rejoin")
