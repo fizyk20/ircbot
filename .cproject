@@ -33,6 +33,7 @@
 									<listOptionValue builtIn="false" value="QT_CC_GNU=1"/>
 									<listOptionValue builtIn="false" value="QT_CORE_LIB=1"/>
 									<listOptionValue builtIn="false" value="QT_GUI_LIB=1"/>
+									<listOptionValue builtIn="false" value="NULL=0"/>
 								</option>
 								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.1894017753" languageId="org.eclipse.cdt.core.g++" languageName="GNU C++" sourceContentType="org.eclipse.cdt.core.cxxSource,org.eclipse.cdt.core.cxxHeader" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
 							</tool>

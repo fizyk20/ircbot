@@ -142,7 +142,7 @@ void CKickBan::executeCommand(QString command, QStringList params, QString addr,
 			if(id == -1) { core -> sendMsg(addr, "Nie ma takiego użytkownika."); return; }
 
 			User u = (*users)[id];
-			ban(u.nick, "*!*@" + u.mask);
+			ban(u.nick, "*!" + u.mask);
 			core -> kickUser(params[0], (params.length() > 1) ? params[1] : "");
 		}
 		else if(command == "unban")

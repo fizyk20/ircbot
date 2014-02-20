@@ -77,7 +77,7 @@ int CIrcSession::ProcessPacket(IrcPacket p)
 	
 	if(i != -1)
 	{
-		par.mask = p.hdr.mid(i,p.hdr.length());
+		par.mask = p.hdr.mid(i+1,p.hdr.length());
 		par.params.push_back(p.hdr.mid(0,i));
 	}
 	else
